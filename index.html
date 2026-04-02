@@ -1,23 +1,95 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bouguenais Ludique</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-      background: #f5f5f5;
-    }
-    h1 {
-      color: #333;
-    }
-  </style>
-</head>
-<body>
-  <h1>🎲 Bouguenais Ludique</h1>
-  <p>Le site arrive bientôt !</p>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bouguenais Ludique</title>
+    <meta
+      name="description"
+      content="Bouguenais Ludique : univers jeux de société, événements ludiques et découvertes à Bouguenais."
+    />
+    <link rel="stylesheet" href="./assets/css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="index.html">🎲 Bouguenais Ludique</a>
+
+        <nav class="main-nav">
+          <a href="./index.html">Accueil</a>
+          <a href="./pages/catalogue.html">Catalogue</a>
+          <a href="./pages/contact.html">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section id="accueil" class="hero">
+        <div class="container">
+          <p class="eyebrow">Boutique ludique locale</p>
+          <h1>Bienvenue sur Bouguenais Ludique</h1>
+          <p class="hero-text">
+            Jeux de société, découvertes, conseils, animations et passion du jeu.
+          </p>
+          <a class="btn" href="#concept">Découvrir le projet</a>
+        </div>
+      </section>
+
+      <section id="concept" class="section">
+        <div class="container">
+          <h2>Le concept</h2>
+          <p>
+            Bouguenais Ludique a pour vocation de proposer un univers convivial
+            autour du jeu de société : présentation de jeux, conseils, animations
+            et, à terme, catalogue et services autour du jeu.
+          </p>
+        </div>
+      </section>
+
+      <section id="selection" class="section section-alt">
+        <div class="container">
+          <h2>Une sélection pour tous les profils</h2>
+
+          <div class="cards">
+            <article class="card">
+              <h3>Jeux famille</h3>
+              <p>Des titres accessibles, fun et rapides à sortir.</p>
+            </article>
+
+            <article class="card">
+              <h3>Jeux experts</h3>
+              <p>Des jeux plus riches pour les joueurs qui aiment réfléchir.</p>
+            </article>
+
+            <article class="card">
+              <h3>Animations</h3>
+              <p>Soirées découverte, démonstrations et événements ludiques.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="section">
+        <div class="container">
+          <h2>Contact</h2>
+          <p>
+            Le formulaire de contact arrivera bientôt. En attendant, le site est en
+            cours de construction.
+          </p>
+
+          <button id="infoButton" class="btn btn-secondary" type="button">
+            En savoir plus
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© 2026 Bouguenais Ludique</p>
+      </div>
+    </footer>
+
+    <script src="./assets/js/script.js"></script>
+  </body>
 </html>
