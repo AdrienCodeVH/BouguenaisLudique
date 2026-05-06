@@ -897,6 +897,39 @@ a {
   padding-top: 2.2rem;
 }
 
+/* Page contact : bloc infos centré dans la zone de contenu */
+.content-page-contact main {
+  justify-content: center;
+  background:
+    radial-gradient(circle at 18% 10%, color-mix(in srgb, var(--blue-soft) 35%, transparent), transparent 52%),
+    radial-gradient(circle at 82% 14%, color-mix(in srgb, var(--yellow-soft) 55%, transparent), transparent 54%),
+    linear-gradient(180deg, #f8fafc 0%, var(--blue-muted) 58%, color-mix(in srgb, var(--yellow-soft) 70%, #fff 30%) 100%);
+}
+
+.content-page-contact .section {
+  padding: 1.2rem 0 1.6rem;
+  background: transparent;
+}
+
+.content-page-contact .section::after {
+  height: 28px;
+  bottom: -1px;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0),
+    color-mix(in srgb, var(--yellow-soft) 75%, #fff 25%) 92%
+  );
+}
+
+.content-page-contact .section .container {
+  max-width: 760px;
+  padding: 1.25rem 1.35rem;
+  border-radius: var(--border-radius);
+  background: color-mix(in srgb, #ffffff 82%, var(--blue-muted) 18%);
+  border: 1px solid color-mix(in srgb, var(--blue) 14%, transparent);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--blue) 10%, transparent);
+}
+
 @media (max-width: 700px) {
   .site-header .container {
     flex-direction: column;
@@ -933,6 +966,10 @@ a {
 
   .content-page .section {
     padding: 2.1rem 0 2.7rem;
+  }
+
+  .content-page-contact .section {
+    padding: 1.2rem 0 2rem;
   }
 }
 
