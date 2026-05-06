@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classiques, puzzle et echecs - Bouguenais Ludique</title>
+    <meta
+      name="description"
+      content="Selection de jeux classiques, puzzles et echecs avec filtres par categorie."
+    />
+    <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+  </head>
+  <body class="content-page content-page-classics">
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark" aria-hidden="true">🎲</span>
+          <span class="logo-title">Bouguenais Ludique</span>
+        </a>
+
+        <nav class="main-nav">
+          <a href="../index.html">Accueil</a>
+          <a href="./catalogue.html">Catalogue</a>
+          <a href="./contact.html">Contact</a>
+          <a class="main-nav-btn main-nav-btn--ghost" href="./connexion.html">Connexion</a>
+          <a class="main-nav-btn main-nav-btn--primary" href="./inscription.html">S'inscrire</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="container">
+          <h2>Classiques, puzzle et echecs</h2>
+
+          <div class="boardgame-filters" role="group" aria-label="Filtrer par type de jeu">
+            <button class="boardgame-filter is-active" type="button" data-classic-filter="all">
+              Tous
+            </button>
+            <button class="boardgame-filter" type="button" data-classic-filter="classique">
+              Classiques
+            </button>
+            <button class="boardgame-filter" type="button" data-classic-filter="puzzle">
+              Puzzle
+            </button>
+            <button class="boardgame-filter" type="button" data-classic-filter="echecs">
+              Echecs
+            </button>
+          </div>
+
+          <div class="cards classics-cards">
+            <article class="card classics-card" data-classic-group="classique">
+              <h3>Monopoly</h3>
+              <p>Le grand classique familial autour de l'achat et de la strategie.</p>
+            </article>
+
+            <article class="card classics-card" data-classic-group="classique">
+              <h3>Scrabble</h3>
+              <p>Un incontournable pour jouer avec les mots et enrichir son vocabulaire.</p>
+            </article>
+
+            <article class="card classics-card" data-classic-group="puzzle">
+              <h3>Puzzle 1000 pieces</h3>
+              <p>Format ideal pour une experience relaxante et progressive.</p>
+            </article>
+
+            <article class="card classics-card" data-classic-group="puzzle">
+              <h3>Puzzle panoramique</h3>
+              <p>Un format large pour les amateurs de grands paysages et de details.</p>
+            </article>
+
+            <article class="card classics-card" data-classic-group="echecs">
+              <h3>Jeu d'echecs debutant</h3>
+              <p>Pieces lisibles et plateau pliable pour apprendre facilement.</p>
+            </article>
+
+            <article class="card classics-card" data-classic-group="echecs">
+              <h3>Jeu d'echecs tournoi</h3>
+              <p>Materiel plus premium pour des parties regulieres et competitives.</p>
+            </article>
+          </div>
+
+          <div class="catalogue-cta-wrap">
+            <a class="btn" href="./catalogue.html">Retour au catalogue</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© 2026 Bouguenais Ludique</p>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        const filters = Array.from(document.querySelectorAll("[data-classic-filter]"));
+        const cards = Array.from(document.querySelectorAll(".classics-card[data-classic-group]"));
+        if (filters.length === 0 || cards.length === 0) return;
+
+        function applyFilter(value) {
+          cards.forEach((card) => {
+            const group = card.getAttribute("data-classic-group");
+            card.hidden = !(value === "all" || group === value);
+          });
+        }
+
+        filters.forEach((button) => {
+          button.addEventListener("click", () => {
+            const value = button.getAttribute("data-classic-filter") || "all";
+            filters.forEach((b) => b.classList.remove("is-active"));
+            button.classList.add("is-active");
+            applyFilter(value);
+          });
+        });
+      })();
+    </script>
+    <script src="../assets/js/script.js"></script>
+  </body>
+</html>

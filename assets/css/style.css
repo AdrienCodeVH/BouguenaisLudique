@@ -1046,6 +1046,18 @@ a {
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
 }
 
+.content-page-classics .section h2 {
+  margin-bottom: 0.45rem;
+}
+
+.classics-cards {
+  margin-top: 0.95rem;
+}
+
+.classics-card {
+  min-height: 172px;
+}
+
 /* Page contact : bloc infos centré dans la zone de contenu */
 .content-page-contact main {
   justify-content: center;
