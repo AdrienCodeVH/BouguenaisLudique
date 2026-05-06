@@ -68,3 +68,61 @@ if (slideLayout && slidePanels.length > 1) {
     }
   });
 }
+
+const comingSoonMessage = "Ce contenu arrive prochainement.";
+const comingSoonCardText = "Bientôt disponible.";
+
+function markCardAsComingSoon(trigger) {
+  if (!trigger.classList.contains("card")) {
+    return false;
+  }
+
+  const paragraphs = trigger.querySelectorAll("p");
+  if (paragraphs.length === 0) {
+    return false;
+  }
+
+  paragraphs.forEach((paragraph) => {
+    paragraph.textContent = comingSoonCardText;
+  });
+
+  return true;
+}
+
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof Element)) {
+    return;
+  }
+
+  const trigger = target.closest("[data-coming-soon]");
+  if (!trigger) {
+    return;
+  }
+
+  event.preventDefault();
+  if (!markCardAsComingSoon(trigger)) {
+    window.alert(comingSoonMessage);
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") {
+    return;
+  }
+
+  const target = event.target;
+  if (!(target instanceof Element)) {
+    return;
+  }
+
+  if (!target.closest("[data-coming-soon]")) {
+    return;
+  }
+
+  event.preventDefault();
+  const trigger = target.closest("[data-coming-soon]");
+  if (!trigger || !markCardAsComingSoon(trigger)) {
+    window.alert(comingSoonMessage);
+  }
+});

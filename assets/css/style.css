@@ -459,6 +459,22 @@ a {
   margin-bottom: 0.5rem;
 }
 
+.coming-soon-trigger {
+  position: relative;
+  cursor: pointer;
+}
+
+.coming-soon-trigger:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--blue) 40%, var(--yellow) 60%);
+  outline-offset: 3px;
+}
+
+.feature-list .coming-soon-trigger {
+  border-radius: 8px;
+  padding: 0.15rem 0.35rem;
+  width: fit-content;
+}
+
 .feature-list {
   margin: 1.5rem 0 0;
   padding-left: 1.2rem;
@@ -834,6 +850,53 @@ a {
   font-size: 0.88rem;
 }
 
+/* Pages de contenu classiques (hors home en slides) */
+.content-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-page main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.content-page .hero {
+  padding: 4.6rem 0 3.1rem;
+}
+
+.content-page .hero-text {
+  margin: 0.9rem auto 0;
+}
+
+.content-page .section {
+  padding: 2.6rem 0 3.2rem;
+}
+
+.content-page .cards {
+  margin-top: 0.55rem;
+  gap: 1.25rem;
+}
+
+.content-page .card {
+  padding: 1.35rem;
+}
+
+.content-page .site-footer {
+  padding: 1.2rem 0 1.35rem;
+}
+
+/* Ajustements fins catalogue */
+.content-page-catalogue .hero {
+  padding-bottom: 2.7rem;
+}
+
+.content-page-catalogue .section {
+  padding-top: 2.2rem;
+}
+
 @media (max-width: 700px) {
   .site-header .container {
     flex-direction: column;
@@ -862,6 +925,14 @@ a {
   .hero.hero-brand-only,
   .slide-panel > .hero.hero-brand-only {
     padding: 1.25rem 0;
+  }
+
+  .content-page .hero {
+    padding: 3.8rem 0 2.5rem;
+  }
+
+  .content-page .section {
+    padding: 2.1rem 0 2.7rem;
   }
 }
 
