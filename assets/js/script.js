@@ -29,11 +29,15 @@ function goToSlide(index) {
 
 if (slideLayout && slidePanels.length > 1) {
   window.addEventListener("wheel", (event) => {
-    if (window.innerWidth <= 900 || isLocked) {
+    if (window.innerWidth <= 900) {
       return;
     }
 
     event.preventDefault();
+
+    if (isLocked) {
+      return;
+    }
 
     const direction = Math.sign(event.deltaY);
     if (direction === 0) {

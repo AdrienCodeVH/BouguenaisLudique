@@ -84,6 +84,41 @@ a {
   letter-spacing: 0.02em;
 }
 
+.logo-title {
+  position: relative;
+  display: inline-block;
+  padding: 0.15rem 0.45rem 0.2rem;
+  font-family: "Instrument Serif", "Bookman Old Style", "Times New Roman", serif;
+  font-size: 1.3rem;
+  line-height: 1;
+  letter-spacing: 0.015em;
+  color: color-mix(in srgb, var(--blue) 86%, #0f172a 14%);
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    0 5px 14px color-mix(in srgb, var(--blue) 18%, transparent);
+}
+
+.logo-title::before,
+.logo-title::after {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-52%);
+  font-size: 0.72rem;
+  color: color-mix(in srgb, var(--yellow) 82%, var(--blue) 18%);
+  opacity: 0.82;
+}
+
+.logo-title::before {
+  content: "✦";
+  left: -0.45rem;
+}
+
+.logo-title::after {
+  content: "✦";
+  right: -0.45rem;
+}
+
 .logo-mark {
   display: inline-flex;
   align-items: center;
@@ -217,13 +252,18 @@ a {
 }
 
 .hero.hero-brand-only h1.hero-brand-title {
+  position: relative;
   margin: 0;
-  font-family: "Instrument Serif", Georgia, serif;
-  font-weight: 400;
+  font-family: "Cinzel", "Instrument Serif", Georgia, serif;
+  font-weight: 700;
   font-size: clamp(3rem, 12vw, 7rem);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
+  line-height: 0.9;
+  letter-spacing: 0.01em;
   color: color-mix(in srgb, var(--blue) 92%, #0f172a 8%);
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    0 8px 24px color-mix(in srgb, var(--blue) 16%, transparent);
 }
 
 .hero-brand-line {
@@ -240,15 +280,19 @@ a {
 
 .hero-brand-line-accent {
   background: linear-gradient(
-    115deg,
-    var(--blue) 0%,
-    var(--blue-light) 38%,
-    var(--yellow) 88%
+    110deg,
+    color-mix(in srgb, var(--blue-light) 85%, #ffffff 15%) 0%,
+    color-mix(in srgb, var(--blue-light) 55%, #ffffff 45%) 42%,
+    color-mix(in srgb, var(--yellow) 72%, #ffffff 28%) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--blue) 35%, transparent);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4),
+    0 10px 24px color-mix(in srgb, var(--blue-light) 28%, transparent);
   animation:
     hero-brand-in 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.18s forwards,
     hero-brand-shimmer 12s ease-in-out infinite 1.2s;
@@ -285,14 +329,43 @@ a {
     background: none;
     -webkit-background-clip: unset;
     background-clip: unset;
-    color: color-mix(in srgb, var(--blue) 45%, var(--yellow) 55%);
+    -webkit-text-stroke: 0;
+    text-shadow: none;
+    color: color-mix(in srgb, var(--blue) 42%, var(--yellow) 58%);
   }
 }
 
 /* Moins d’air que le hero classique : surcharge le 50% + padding du slide */
 .slide-panel > .hero.hero-brand-only {
   min-height: min(36vh, 260px);
-  padding: 1.25rem 0;
+  padding: 0.9rem 0 0.65rem;
+}
+
+#concept.section {
+  padding: 1.8rem 0 1.1rem;
+}
+
+#concept.section h2 {
+  margin-bottom: 0.65rem;
+  font-size: clamp(1.5rem, 2.35vw, 1.95rem);
+}
+
+#concept.section p {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: clamp(0.98rem, 1.23vw, 1.06rem);
+  line-height: 1.46;
+}
+
+#concept .catalogue-cta-wrap {
+  margin-top: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+@media (max-height: 860px) and (min-width: 901px) {
+  #concept.section p:last-of-type {
+    display: none;
+  }
 }
 
 .section {
@@ -331,6 +404,29 @@ a {
   justify-content: center;
   margin-top: 1.9rem;
   margin-bottom: 1.4rem;
+}
+
+.btn-catalogue-cta {
+  position: relative;
+  z-index: 2;
+  padding: 0.92rem 1.45rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #102a57;
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--blue) 45%, var(--accent-dark) 55%);
+  box-shadow:
+    0 12px 26px color-mix(in srgb, var(--blue) 16%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--yellow-light) 65%, transparent);
+}
+
+.btn-catalogue-cta:hover {
+  color: #0d2450;
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 14px 30px color-mix(in srgb, var(--blue) 22%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--yellow-light) 72%, transparent);
 }
 
 .cards {
@@ -593,7 +689,7 @@ a {
   flex: 0 0 100%;
   width: 100%;
   height: 100%;
-  overflow-y: auto;
+  overflow: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-behavior: smooth;
@@ -746,6 +842,17 @@ a {
 
   .main-nav {
     width: 100%;
+  }
+
+  .logo-title {
+    font-size: 1.12rem;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+  }
+
+  .logo-title::before,
+  .logo-title::after {
+    font-size: 0.6rem;
   }
 
   .hero:not(.hero-brand-only) {
