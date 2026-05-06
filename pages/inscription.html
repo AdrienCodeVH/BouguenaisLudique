@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S'inscrire - Bouguenais Ludique</title>
+    <meta
+      name="description"
+      content="Créer un compte Bouguenais Ludique."
+    />
+    <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark" aria-hidden="true">🎲</span>
+          <span>Bouguenais Ludique</span>
+        </a>
+
+        <nav class="main-nav">
+          <a href="../index.html">Accueil</a>
+          <a href="./catalogue.html">Catalogue</a>
+          <a href="./contact.html">Contact</a>
+          <a class="main-nav-btn main-nav-btn--ghost" href="./connexion.html"
+            >Connexion</a
+          >
+          <a class="main-nav-btn main-nav-btn--primary" href="./inscription.html"
+            >S'inscrire</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <p class="eyebrow">Compte</p>
+          <h1>S'inscrire</h1>
+          <p class="hero-text">
+            Crée un compte pour suivre tes commandes et les paliers du projet.
+          </p>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="container container--narrow">
+          <h2 class="auth-section-title">Créer un compte</h2>
+          <form id="signup-form" class="auth-form" novalidate>
+            <div class="form-field">
+              <label for="signup-name">Prénom ou pseudo</label>
+              <input
+                type="text"
+                id="signup-name"
+                name="display_name"
+                autocomplete="nickname"
+                maxlength="80"
+              />
+            </div>
+            <div class="form-field">
+              <label for="signup-email">E-mail</label>
+              <input
+                type="email"
+                id="signup-email"
+                name="email"
+                required
+                autocomplete="email"
+                inputmode="email"
+              />
+            </div>
+            <div class="form-field">
+              <label for="signup-password">Mot de passe</label>
+              <input
+                type="password"
+                id="signup-password"
+                name="password"
+                required
+                minlength="8"
+                autocomplete="new-password"
+              />
+              <span class="form-hint">Au moins 8 caractères.</span>
+            </div>
+            <div class="form-field">
+              <label for="signup-confirm">Confirmer le mot de passe</label>
+              <input
+                type="password"
+                id="signup-confirm"
+                name="confirm"
+                required
+                autocomplete="new-password"
+              />
+            </div>
+            <label class="form-check">
+              <input type="checkbox" id="signup-consent" name="consent" required />
+              <span>J’accepte les conditions d’utilisation et la politique de confidentialité.</span>
+            </label>
+            <button type="submit" class="btn auth-form-submit">Créer mon compte</button>
+            <p id="signup-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
+            <p class="auth-alt-link">
+              Déjà un compte ?
+              <a href="./connexion.html">Connexion</a>
+            </p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© 2026 Bouguenais Ludique</p>
+      </div>
+    </footer>
+
+    <script src="../assets/js/auth-config.js"></script>
+    <script src="../assets/js/auth-api.js"></script>
+    <script src="../assets/js/inscription.js"></script>
+    <script src="../assets/js/script.js"></script>
+  </body>
+</html>

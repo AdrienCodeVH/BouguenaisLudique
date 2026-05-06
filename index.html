@@ -9,6 +9,12 @@
       content="Bouguenais Ludique : univers jeux de société, événements ludiques et découvertes à Bouguenais."
     />
     <link rel="icon" href="./assets/images/favicon_BL.ico" type="image/x-icon" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./assets/css/style.css" />
   </head>
   <body>
@@ -23,6 +29,12 @@
           <a href="./index.html">Accueil</a>
           <a href="./pages/catalogue.html">Catalogue</a>
           <a href="./pages/contact.html">Contact</a>
+          <a class="main-nav-btn main-nav-btn--ghost" href="./pages/connexion.html"
+            >Connexion</a
+          >
+          <a class="main-nav-btn main-nav-btn--primary" href="./pages/inscription.html"
+            >S'inscrire</a
+          >
         </nav>
       </div>
     </header>
@@ -30,15 +42,12 @@
     <main class="slide-layout" aria-label="Présentation Bouguenais Ludique">
       <div class="slide-track">
         <section class="slide-panel" aria-label="Introduction et concept">
-          <section id="accueil" class="hero">
-            <div class="container">
-              <p class="eyebrow">Boutique ludique locale</p>
-              <h1>Redécouvrez le jeu, au juste prix</h1>
-              <p class="hero-text">
-                Bienvenue dans une boutique pensée par un passionné, pour tous les
-                joueurs.
-              </p>
-              <a class="btn" href="#concept">Découvrir le projet</a>
+          <section id="accueil" class="hero hero-brand-only" aria-labelledby="hero-brand-heading">
+            <div class="container hero-brand-inner">
+              <h1 id="hero-brand-heading" class="hero-brand-title">
+                <span class="hero-brand-line" data-brand-line>Bouguenais</span>
+                <span class="hero-brand-line hero-brand-line-accent" data-brand-line>Ludique</span>
+              </h1>
             </div>
           </section>
 
@@ -59,6 +68,10 @@
                 ou passionné exigeant, vous trouverez des produits adaptés à votre
                 manière de jouer, sans jamais payer plus que nécessaire.
               </p>
+
+              <div class="catalogue-cta-wrap">
+                <a class="btn" href="./pages/catalogue.html">Catalogue</a>
+              </div>
             </div>
           </section>
         </section>
@@ -136,6 +149,38 @@
         </section>
       </div>
     </main>
+
+    <aside
+      class="project-barometer project-barometer-card"
+      aria-labelledby="barometer-heading"
+      aria-label="Avancement du projet"
+    >
+      <div class="container">
+        <div class="project-barometer-top">
+          <p id="barometer-heading" class="project-barometer-heading">
+            Projet en cours
+          </p>
+          <p class="project-barometer-count">
+            <strong>50</strong>
+            <span class="project-barometer-count-sep">/</span>
+            100 commandes
+          </p>
+        </div>
+        <div
+          class="project-barometer-track"
+          role="progressbar"
+          aria-valuenow="50"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-labelledby="barometer-heading"
+        >
+          <div class="project-barometer-fill" style="--bar-target: 50%"></div>
+        </div>
+        <p class="project-barometer-hint">
+          Exemple — prochain palier : remise en main propre & café offert.
+        </p>
+      </div>
+    </aside>
 
     <footer class="site-footer site-footer-persistent">
       <div class="container">

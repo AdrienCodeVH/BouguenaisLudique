@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connexion - Bouguenais Ludique</title>
+    <meta
+      name="description"
+      content="Connexion à votre espace Bouguenais Ludique."
+    />
+    <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark" aria-hidden="true">🎲</span>
+          <span>Bouguenais Ludique</span>
+        </a>
+
+        <nav class="main-nav">
+          <a href="../index.html">Accueil</a>
+          <a href="./catalogue.html">Catalogue</a>
+          <a href="./contact.html">Contact</a>
+          <a class="main-nav-btn main-nav-btn--ghost" href="./connexion.html"
+            >Connexion</a
+          >
+          <a class="main-nav-btn main-nav-btn--primary" href="./inscription.html"
+            >S'inscrire</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <p class="eyebrow">Compte</p>
+          <h1>Connexion</h1>
+          <p class="hero-text">
+            Accède à ton espace avec le même e-mail que lors de l’inscription.
+          </p>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="container container--narrow">
+          <h2 class="auth-section-title">Se connecter</h2>
+          <form id="login-form" class="auth-form" novalidate>
+            <div class="form-field">
+              <label for="login-email">E-mail</label>
+              <input
+                type="email"
+                id="login-email"
+                name="email"
+                required
+                autocomplete="email"
+              />
+            </div>
+            <div class="form-field">
+              <label for="login-password">Mot de passe</label>
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                required
+                autocomplete="current-password"
+              />
+            </div>
+            <button type="submit" class="btn auth-form-submit">Connexion</button>
+            <p id="login-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
+            <p class="auth-alt-link">
+              Pas encore de compte ?
+              <a href="./inscription.html">S’inscrire</a>
+            </p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© 2026 Bouguenais Ludique</p>
+      </div>
+    </footer>
+
+    <script src="../assets/js/auth-config.js"></script>
+    <script src="../assets/js/auth-api.js"></script>
+    <script src="../assets/js/connexion.js"></script>
+    <script src="../assets/js/script.js"></script>
+  </body>
+</html>
