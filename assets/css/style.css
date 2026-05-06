@@ -459,6 +459,12 @@ a {
   margin-bottom: 0.5rem;
 }
 
+.card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 .coming-soon-trigger {
   position: relative;
   cursor: pointer;
@@ -895,6 +901,149 @@ a {
 
 .content-page-catalogue .section {
   padding-top: 2.2rem;
+}
+
+.content-page-tcg .hero {
+  padding-bottom: 2.4rem;
+}
+
+.tcg-intro {
+  margin-bottom: 1rem;
+}
+
+.tcg-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+  margin-bottom: 1.15rem;
+}
+
+.tcg-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--yellow-soft) 72%, #fff 28%);
+  color: color-mix(in srgb, var(--blue) 74%, var(--text) 26%);
+  border: 1px solid color-mix(in srgb, var(--blue) 20%, transparent);
+}
+
+.tcg-cards {
+  margin-top: 0.35rem;
+}
+
+.tcg-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tcg-card-image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--blue) 14%, transparent);
+  margin-bottom: 0.25rem;
+}
+
+.tcg-card-game {
+  margin: 0.05rem 0 0.15rem;
+  font-size: 0.94rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  text-align: center;
+}
+
+.tcg-card-game-link {
+  text-decoration: none;
+}
+
+.tcg-card-game-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+}
+
+.tcg-note {
+  margin-top: 1.25rem;
+  font-size: 0.92rem;
+  color: var(--text-light);
+  text-align: center;
+}
+
+.content-page-boardgames .hero {
+  padding-bottom: 2.45rem;
+}
+
+.boardgame-cards {
+  margin-top: 1rem;
+}
+
+.boardgame-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+  margin: 0.9rem 0 1.05rem;
+}
+
+.boardgame-filter {
+  border: 1px solid color-mix(in srgb, var(--blue) 20%, transparent);
+  background: color-mix(in srgb, #ffffff 88%, var(--blue-muted) 12%);
+  color: color-mix(in srgb, var(--blue) 72%, var(--text) 28%);
+  border-radius: 999px;
+  padding: 0.36rem 0.78rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.boardgame-filter:hover {
+  border-color: color-mix(in srgb, var(--blue) 35%, transparent);
+  background: color-mix(in srgb, var(--blue-soft) 35%, #fff 65%);
+}
+
+.boardgame-filter.is-active {
+  color: #12335f;
+  border-color: color-mix(in srgb, var(--accent-dark) 35%, var(--blue) 30%);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--yellow-light) 55%, #fff 45%),
+    color-mix(in srgb, var(--blue-soft) 38%, #fff 62%)
+  );
+}
+
+.boardgame-card {
+  position: relative;
+  padding-top: 2.1rem;
+}
+
+.age-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  min-width: 2.55rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #1e3a5f;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--yellow-light) 65%, #fff 35%),
+    color-mix(in srgb, var(--blue-soft) 48%, #fff 52%)
+  );
+  border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
 }
 
 /* Page contact : bloc infos centré dans la zone de contenu */

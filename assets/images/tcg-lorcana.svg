@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="520" viewBox="0 0 800 520" role="img" aria-label="Illustration deck Lorcana">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ede9fe" />
+      <stop offset="100%" stop-color="#dbeafe" />
+    </linearGradient>
+    <linearGradient id="deck" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c3aed" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)" />
+  <rect x="220" y="140" width="210" height="300" rx="18" fill="#ffffff" stroke="#c4b5fd" stroke-width="8" />
+  <rect x="370" y="95" width="210" height="300" rx="18" fill="#ffffff" stroke="#93c5fd" stroke-width="8" />
+  <rect x="300" y="70" width="200" height="300" rx="20" fill="url(#deck)" />
+  <path d="M355 178 L445 178 L400 108 Z" fill="#fef3c7" />
+  <text x="400" y="335" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#eef2ff">DECK</text>
+</svg>

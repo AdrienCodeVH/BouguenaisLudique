@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="520" viewBox="0 0 800 520" role="img" aria-label="Illustration booster Pokemon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dbeafe" />
+      <stop offset="100%" stop-color="#fde68a" />
+    </linearGradient>
+    <linearGradient id="pack" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" fill="url(#bg)" />
+  <rect x="260" y="90" width="280" height="340" rx="22" fill="url(#pack)" />
+  <rect x="280" y="120" width="240" height="24" rx="12" fill="#bfdbfe" opacity="0.9" />
+  <circle cx="400" cy="250" r="72" fill="#facc15" />
+  <circle cx="400" cy="250" r="32" fill="#ffffff" />
+  <text x="400" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">BOOSTER</text>
+</svg>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jeux de societe - Bouguenais Ludique</title>
+    <meta
+      name="description"
+      content="Selection de jeux de societe avec vignettes d'age pour choisir plus facilement."
+    />
+    <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+  </head>
+  <body class="content-page content-page-boardgames">
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark" aria-hidden="true">🎲</span>
+          <span class="logo-title">Bouguenais Ludique</span>
+        </a>
+
+        <nav class="main-nav">
+          <a href="../index.html">Accueil</a>
+          <a href="./catalogue.html">Catalogue</a>
+          <a href="./contact.html">Contact</a>
+          <a class="main-nav-btn main-nav-btn--ghost" href="./connexion.html">Connexion</a>
+          <a class="main-nav-btn main-nav-btn--primary" href="./inscription.html">S'inscrire</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="container">
+          <h2>Jeux de societes</h2>
+          <div class="boardgame-filters" role="group" aria-label="Filtrer par age">
+            <button class="boardgame-filter is-active" type="button" data-age-filter="all">
+              Tous
+            </button>
+            <button class="boardgame-filter" type="button" data-age-filter="family">
+              Famille (6-10)
+            </button>
+            <button class="boardgame-filter" type="button" data-age-filter="teen">
+              Ado (12-14)
+            </button>
+            <button class="boardgame-filter" type="button" data-age-filter="expert">
+              Expert (16+)
+            </button>
+          </div>
+
+          <div class="cards boardgame-cards">
+            <article class="card boardgame-card" data-age-group="family">
+              <span class="age-badge">6+</span>
+              <h3>Dobble</h3>
+              <p>Rapide, familial, parfait pour jouer en quelques minutes.</p>
+            </article>
+
+            <article class="card boardgame-card" data-age-group="family">
+              <span class="age-badge">8+</span>
+              <h3>King of Tokyo</h3>
+              <p>Des monstres, des des et une ambiance tres fun autour de la table.</p>
+            </article>
+
+            <article class="card boardgame-card" data-age-group="family">
+              <span class="age-badge">10+</span>
+              <h3>Ticket to Ride</h3>
+              <p>Un classique accessible, ideal en famille ou entre amis.</p>
+            </article>
+
+            <article class="card boardgame-card" data-age-group="teen">
+              <span class="age-badge">12+</span>
+              <h3>7 Wonders</h3>
+              <p>Jeu de draft dynamique avec des parties courtes et rejouables.</p>
+            </article>
+
+            <article class="card boardgame-card" data-age-group="teen">
+              <span class="age-badge">14+</span>
+              <h3>Terraforming Mars</h3>
+              <p>Plus strategique, pour les joueurs qui aiment les parties longues.</p>
+            </article>
+
+            <article class="card boardgame-card" data-age-group="expert">
+              <span class="age-badge">16+</span>
+              <h3>Ark Nova</h3>
+              <p>Gestion riche et immersive pour les amateurs de jeux experts.</p>
+            </article>
+          </div>
+
+          <div class="catalogue-cta-wrap">
+            <a class="btn" href="./catalogue.html">Retour au catalogue</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© 2026 Bouguenais Ludique</p>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        const filters = Array.from(document.querySelectorAll("[data-age-filter]"));
+        const cards = Array.from(document.querySelectorAll(".boardgame-card[data-age-group]"));
+        if (filters.length === 0 || cards.length === 0) return;
+
+        function applyFilter(value) {
+          cards.forEach((card) => {
+            const group = card.getAttribute("data-age-group");
+            const show = value === "all" || group === value;
+            card.hidden = !show;
+          });
+        }
+
+        filters.forEach((button) => {
+          button.addEventListener("click", () => {
+            const value = button.getAttribute("data-age-filter") || "all";
+            filters.forEach((b) => b.classList.remove("is-active"));
+            button.classList.add("is-active");
+            applyFilter(value);
+          });
+        });
+      })();
+    </script>
+    <script src="../assets/js/script.js"></script>
+  </body>
+</html>
