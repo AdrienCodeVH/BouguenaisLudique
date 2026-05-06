@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Bouguenais Ludique</title>
+    <meta
+      name="description"
+      content="Espace administrateur Bouguenais Ludique."
+    />
+    <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <style>
+      .admin-placeholder {
+        min-height: 60vh;
+        display: grid;
+        place-items: center;
+        text-align: center;
+      }
+
+      .admin-placeholder-title {
+        margin: 0;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body class="content-page">
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark" aria-hidden="true">🎲</span>
+          <span class="logo-title">Bouguenais Ludique</span>
+        </a>
+
+        <nav class="main-nav">
+          <a href="../index.html">Accueil</a>
+          <a href="./catalogue.html">Catalogue</a>
+          <a href="./contact.html">Contact</a>
+          <a class="main-nav-btn main-nav-btn--ghost" href="./connexion.html">Connexion</a>
+          <a class="main-nav-btn main-nav-btn--primary" href="./inscription.html">S'inscrire</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="section admin-placeholder">
+        <div class="container">
+          <h1 class="admin-placeholder-title">Espace admin</h1>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© 2026 Bouguenais Ludique</p>
+      </div>
+    </footer>
+
+    <script src="../assets/js/auth-config.js"></script>
+    <script src="../assets/js/auth-api.js"></script>
+    <script src="../assets/js/auth-ui.js"></script>
+    <script src="../assets/js/script.js"></script>
+  </body>
+</html>

@@ -3,6 +3,24 @@
   const feedback = document.getElementById("login-feedback");
   if (!form || !feedback || !window.BLAuth) return;
 
+  function toFriendlyLoginError(err) {
+    const raw = String(err && err.message ? err.message : "").toLowerCase();
+    if (!raw) return "Connexion impossible. Réessaie dans quelques instants.";
+    if (raw.includes("invalid login credentials")) {
+      return "E-mail ou mot de passe incorrect.";
+    }
+    if (raw.includes("email not confirmed")) {
+      return "Ton e-mail n'est pas encore confirmé. Vérifie ta boîte mail.";
+    }
+    if (raw.includes("failed to fetch") || raw.includes("network")) {
+      return "Connexion au serveur impossible. Vérifie ta connexion internet.";
+    }
+    if (raw.includes("secret") && raw.includes("clé")) {
+      return err.message;
+    }
+    return "Connexion impossible. Vérifie tes identifiants et réessaie.";
+  }
+
   function setFeedback(message, isError) {
     feedback.textContent = message;
     feedback.classList.toggle("form-feedback--error", Boolean(isError));
@@ -51,7 +69,7 @@
       setFeedback("Connexion réussie. Redirection…", false);
       window.location.href = "../index.html";
     } catch (err) {
-      setFeedback(err.message || "Identifiants incorrects.", true);
+      setFeedback(toFriendlyLoginError(err), true);
     } finally {
       submitBtn.disabled = false;
     }

@@ -69,7 +69,7 @@ if (slideLayout && slidePanels.length > 1) {
   });
 }
 
-const comingSoonMessage = "Ce contenu arrive prochainement.";
+const comingSoonMessage = "Bientôt disponible.";
 const comingSoonCardText = "Bientôt disponible.";
 
 function markCardAsComingSoon(trigger) {

@@ -101,3 +101,27 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row
   execute function public.handle_new_user();
+
+-- =============================================================================
+-- Bootstrap admin : promouvoir TON compte via ton e-mail
+-- 1) Crée ton compte depuis la page /inscription
+-- 2) Remplace l'e-mail ci-dessous puis exécute ce bloc complet
+-- =============================================================================
+insert into public.profiles (id, display_name, role)
+select
+  u.id,
+  coalesce(
+    nullif(trim(u.raw_user_meta_data ->> 'display_name'), ''),
+    nullif(trim(split_part(coalesce(u.email, ''), '@', 1)), ''),
+    'Joueur'
+  ),
+  'client'
+from auth.users u
+where lower(u.email) = lower('ton-email-admin@exemple.com')
+on conflict (id) do nothing;
+
+update public.profiles p
+set role = 'admin'
+from auth.users u
+where u.id = p.id
+  and lower(u.email) = lower('ton-email-admin@exemple.com');
