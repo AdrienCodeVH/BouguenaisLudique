@@ -197,9 +197,95 @@ create table if not exists public.admin_threshold_rules (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.user_orders (
+  id bigint primary key generated always as identity,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  order_count integer not null default 1 check (order_count > 0),
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.user_barometer_templates (
+  id bigint primary key generated always as identity,
+  title text not null,
+  description text,
+  game_category text,
+  progression_mode text not null default 'repeatable_reset'
+    check (progression_mode in ('repeatable_reset', 'one_time_unlock')),
+  target_value integer not null check (target_value > 0),
+  reward_text text not null,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+alter table public.user_barometer_templates
+  add column if not exists progression_mode text not null default 'repeatable_reset';
+
+alter table public.user_barometer_templates
+  drop constraint if exists user_barometer_templates_progression_mode_check;
+
+alter table public.user_barometer_templates
+  add constraint user_barometer_templates_progression_mode_check
+  check (progression_mode in ('repeatable_reset', 'one_time_unlock'));
+
+create table if not exists public.user_barometer_progress (
+  id bigint primary key generated always as identity,
+  template_id bigint not null references public.user_barometer_templates(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  current_value integer not null default 0 check (current_value >= 0),
+  completed_count integer not null default 0 check (completed_count >= 0),
+  unlocked_at timestamptz,
+  updated_at timestamptz not null default now(),
+  unique(template_id, user_id)
+);
+
+alter table public.user_barometer_progress
+  add column if not exists completed_count integer not null default 0;
+
+alter table public.user_barometer_progress
+  add column if not exists unlocked_at timestamptz;
+
+alter table public.user_barometer_progress
+  drop constraint if exists user_barometer_progress_completed_count_check;
+
+alter table public.user_barometer_progress
+  add constraint user_barometer_progress_completed_count_check
+  check (completed_count >= 0);
+
+create or replace function public.sync_project_barometer_from_user_orders()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_total integer;
+begin
+  select coalesce(sum(order_count), 0)::integer
+  into v_total
+  from public.user_orders;
+
+  update public.project_barometer
+  set current_orders = v_total,
+      updated_at = now()
+  where id = 1;
+
+  return null;
+end;
+$$;
+
+drop trigger if exists sync_project_barometer_after_user_orders on public.user_orders;
+create trigger sync_project_barometer_after_user_orders
+  after insert or update or delete on public.user_orders
+  for each statement
+  execute function public.sync_project_barometer_from_user_orders();
+
 alter table public.project_barometer enable row level security;
 alter table public.products enable row level security;
 alter table public.admin_threshold_rules enable row level security;
+alter table public.user_orders enable row level security;
+alter table public.user_barometer_templates enable row level security;
+alter table public.user_barometer_progress enable row level security;
 
 drop policy if exists "project_barometer_select_public" on public.project_barometer;
 create policy "project_barometer_select_public"
@@ -277,6 +363,125 @@ create policy "admin_threshold_rules_admin_write"
   )
   with check (
     exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "user_orders_select_self_or_admin" on public.user_orders;
+create policy "user_orders_select_self_or_admin"
+  on public.user_orders for select
+  using (
+    user_id = auth.uid()
+    or exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "user_orders_insert_self_or_admin" on public.user_orders;
+create policy "user_orders_insert_self_or_admin"
+  on public.user_orders for insert
+  with check (
+    user_id = auth.uid()
+    or exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "user_orders_admin_update_delete" on public.user_orders;
+create policy "user_orders_admin_update_delete"
+  on public.user_orders for all
+  using (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "user_barometer_templates_select_public" on public.user_barometer_templates;
+create policy "user_barometer_templates_select_public"
+  on public.user_barometer_templates for select
+  using (true);
+
+drop policy if exists "user_barometer_templates_admin_write" on public.user_barometer_templates;
+create policy "user_barometer_templates_admin_write"
+  on public.user_barometer_templates for all
+  using (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "user_barometer_progress_select_self_or_admin" on public.user_barometer_progress;
+create policy "user_barometer_progress_select_self_or_admin"
+  on public.user_barometer_progress for select
+  using (
+    user_id = auth.uid()
+    or exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "user_barometer_progress_insert_self_or_admin" on public.user_barometer_progress;
+create policy "user_barometer_progress_insert_self_or_admin"
+  on public.user_barometer_progress for insert
+  with check (
+    user_id = auth.uid()
+    or exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "user_barometer_progress_update_self_or_admin" on public.user_barometer_progress;
+create policy "user_barometer_progress_update_self_or_admin"
+  on public.user_barometer_progress for update
+  using (
+    user_id = auth.uid()
+    or exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  )
+  with check (
+    user_id = auth.uid()
+    or exists (
       select 1
       from public.profiles p
       where p.id = auth.uid()

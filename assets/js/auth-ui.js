@@ -28,7 +28,8 @@
   }
 
   function getProfilePath(isAdmin) {
-    return isAdmin ? getAdminPath() : getLoginPath();
+    const base = getBasePath();
+    return isAdmin ? getAdminPath() : `${base}/pages/mon-espace.html`;
   }
 
   function parseJwtPayload(token) {

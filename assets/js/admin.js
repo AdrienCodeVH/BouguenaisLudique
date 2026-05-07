@@ -9,6 +9,13 @@
   const thresholdForm = document.getElementById("admin-threshold-form");
   const thresholdFeedback = document.getElementById("admin-threshold-feedback");
   const thresholdsBody = document.getElementById("admin-thresholds-body");
+  const userBarometerForm = document.getElementById("admin-user-barometer-form");
+  const userBarometerFeedback = document.getElementById("admin-user-barometer-feedback");
+  const userBarometersBody = document.getElementById("admin-user-barometers-body");
+  const userProgressResetForm = document.getElementById("admin-user-progress-reset-form");
+  const userProgressResetFeedback = document.getElementById("admin-user-progress-reset-feedback");
+  const resetUserSelect = document.getElementById("admin-reset-user-id");
+  const resetTemplateSelect = document.getElementById("admin-reset-template-id");
   const barometerPreviewCount = document.getElementById("admin-barometer-preview-count");
   const barometerPreviewTrack = document.getElementById("admin-barometer-preview-track");
   const barometerPreviewFill = document.getElementById("admin-barometer-preview-fill");
@@ -225,6 +232,44 @@
       .join("");
   }
 
+  function renderUserBarometers(rows) {
+    if (!userBarometersBody) return;
+    if (!rows.length) {
+      userBarometersBody.innerHTML =
+        '<tr><td colspan="7" class="admin-empty">Aucun baromètre utilisateur configuré.</td></tr>';
+      return;
+    }
+    userBarometersBody.innerHTML = rows
+      .map(
+        (row) => {
+          const modeLabel =
+            row.progression_mode === "one_time_unlock"
+              ? "Déblocage unique à vie"
+              : "Reset automatique";
+          return `
+          <tr>
+            <td>${row.title}</td>
+            <td>${Number(row.target_value)}</td>
+            <td>${modeLabel}</td>
+            <td>${row.reward_text}</td>
+            <td>${row.game_category || "-"}</td>
+            <td>
+              <select data-user-barometer-active data-user-barometer-id="${row.id}">
+                <option value="true"${row.is_active ? " selected" : ""}>Oui</option>
+                <option value="false"${!row.is_active ? " selected" : ""}>Non</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn" type="button" data-user-barometer-save data-user-barometer-id="${row.id}">Enregistrer</button>
+              <button class="btn" type="button" data-user-barometer-delete data-user-barometer-id="${row.id}">Supprimer</button>
+            </td>
+          </tr>
+        `;
+        }
+      )
+      .join("");
+  }
+
   function setFill(fillNode, value) {
     if (!fillNode) return;
     const safe = Math.max(0, Math.min(100, Number(value) || 0));
@@ -281,6 +326,7 @@
     const res = await apiFetch("/rest/v1/profiles?select=id,display_name,role&order=created_at.desc");
     const rows = await res.json();
     renderAccounts(rows);
+    renderResetUserOptions(rows);
   }
 
   async function loadBarometer() {
@@ -328,6 +374,51 @@
     renderThresholdRules(rows);
     updateVisibilityDashboard(rows);
     return rows;
+  }
+
+  async function loadUserBarometers() {
+    if (!userBarometersBody) return [];
+    const res = await apiFetch(
+      "/rest/v1/user_barometer_templates?select=id,title,target_value,progression_mode,reward_text,game_category,is_active&order=created_at.desc"
+    );
+    const rows = await res.json();
+    renderUserBarometers(rows);
+    renderResetTemplateOptions(rows);
+    return rows;
+  }
+
+  function renderResetUserOptions(rows) {
+    if (!(resetUserSelect instanceof HTMLSelectElement)) return;
+    const base = '<option value="" selected disabled>Choisir un utilisateur</option>';
+    if (!Array.isArray(rows) || rows.length === 0) {
+      resetUserSelect.innerHTML = `${base}<option value="" disabled>Aucun utilisateur</option>`;
+      return;
+    }
+    resetUserSelect.innerHTML = base
+      .concat(
+        rows.map((row) => {
+          const label = row.display_name ? `${row.display_name} (${row.id})` : row.id;
+          return `<option value="${row.id}">${label}</option>`;
+        })
+      )
+      .join("");
+  }
+
+  function renderResetTemplateOptions(rows) {
+    if (!(resetTemplateSelect instanceof HTMLSelectElement)) return;
+    const base = '<option value="" selected disabled>Choisir un baromètre</option>';
+    if (!Array.isArray(rows) || rows.length === 0) {
+      resetTemplateSelect.innerHTML = `${base}<option value="" disabled>Aucun baromètre</option>`;
+      return;
+    }
+    resetTemplateSelect.innerHTML = base
+      .concat(
+        rows.map(
+          (row) =>
+            `<option value="${row.id}">${row.title} (${Number(row.target_value) || 0})</option>`
+        )
+      )
+      .join("");
   }
 
   async function refreshThresholdStatus(currentOrders) {
@@ -432,6 +523,79 @@
       setFeedback(thresholdFeedback, "Règle ajoutée.", false);
     } catch (err) {
       setFeedback(thresholdFeedback, err.message || "Impossible d'ajouter la règle.", true);
+    }
+  }
+
+  async function handleUserBarometerSubmit(event) {
+    event.preventDefault();
+    if (!userBarometerForm) return;
+    const title = String(userBarometerForm.title.value || "").trim();
+    const targetValue = Number(userBarometerForm.target_value.value);
+    const progressionMode = String(userBarometerForm.progression_mode.value || "repeatable_reset");
+    const rewardText = String(userBarometerForm.reward_text.value || "").trim();
+    const gameCategory = String(userBarometerForm.game_category.value || "").trim();
+    const description = String(userBarometerForm.description.value || "").trim();
+    if (!title || !rewardText || !Number.isFinite(targetValue) || targetValue <= 0) {
+      setFeedback(userBarometerFeedback, "Baromètre utilisateur invalide.", true);
+      return;
+    }
+    try {
+      await apiFetch("/rest/v1/user_barometer_templates", {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          title,
+          target_value: targetValue,
+          progression_mode: progressionMode,
+          reward_text: rewardText,
+          game_category: gameCategory || null,
+          description: description || null,
+          is_active: true,
+        }),
+      });
+      userBarometerForm.reset();
+      await loadUserBarometers();
+      setFeedback(userBarometerFeedback, "Baromètre utilisateur ajouté.", false);
+    } catch (err) {
+      setFeedback(
+        userBarometerFeedback,
+        err.message || "Impossible d'ajouter le baromètre utilisateur.",
+        true
+      );
+    }
+  }
+
+  async function handleUserProgressResetSubmit(event) {
+    event.preventDefault();
+    if (!userProgressResetForm) return;
+    const userId = String(userProgressResetForm.user_id.value || "").trim();
+    const templateId = Number(userProgressResetForm.template_id.value);
+    if (!userId || !Number.isFinite(templateId) || templateId <= 0) {
+      setFeedback(userProgressResetFeedback, "Sélection utilisateur/baromètre invalide.", true);
+      return;
+    }
+    try {
+      await apiFetch("/rest/v1/user_barometer_progress", {
+        method: "POST",
+        headers: {
+          Prefer: "resolution=merge-duplicates,return=representation",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          template_id: templateId,
+          current_value: 0,
+          completed_count: 0,
+          unlocked_at: null,
+          updated_at: new Date().toISOString(),
+        }),
+      });
+      setFeedback(userProgressResetFeedback, "Progression réinitialisée.", false);
+    } catch (err) {
+      setFeedback(
+        userProgressResetFeedback,
+        err.message || "Impossible de réinitialiser la progression.",
+        true
+      );
     }
   }
 
@@ -587,6 +751,56 @@
     }
   }
 
+  async function handleUserBarometersClick(event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const saveButton = target.closest("[data-user-barometer-save]");
+    if (saveButton) {
+      const id = saveButton.getAttribute("data-user-barometer-id");
+      if (!id) return;
+      const activeSelect = document.querySelector(
+        `[data-user-barometer-active][data-user-barometer-id="${id}"]`
+      );
+      if (!(activeSelect instanceof HTMLSelectElement)) return;
+      try {
+        await apiFetch(`/rest/v1/user_barometer_templates?id=eq.${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({
+            is_active: activeSelect.value === "true",
+          }),
+        });
+        await loadUserBarometers();
+        setFeedback(userBarometerFeedback, "Baromètre utilisateur mis à jour.", false);
+      } catch (err) {
+        setFeedback(
+          userBarometerFeedback,
+          err.message || "Impossible de mettre à jour ce baromètre utilisateur.",
+          true
+        );
+      }
+      return;
+    }
+
+    const deleteButton = target.closest("[data-user-barometer-delete]");
+    if (!deleteButton) return;
+    const id = deleteButton.getAttribute("data-user-barometer-id");
+    if (!id) return;
+    try {
+      await apiFetch(`/rest/v1/user_barometer_templates?id=eq.${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      await loadUserBarometers();
+      setFeedback(userBarometerFeedback, "Baromètre utilisateur supprimé.", false);
+    } catch (err) {
+      setFeedback(
+        userBarometerFeedback,
+        err.message || "Impossible de supprimer ce baromètre utilisateur.",
+        true
+      );
+    }
+  }
+
   async function initAdminPage() {
     const session = window.BLAuthUi?.getStoredSession?.();
     accessToken = session && session.access_token;
@@ -634,6 +848,9 @@
       thresholdsBody?.addEventListener("click", handleThresholdsClick);
       barometerForm?.addEventListener("submit", handleBarometerSubmit);
       thresholdForm?.addEventListener("submit", handleThresholdSubmit);
+      userBarometerForm?.addEventListener("submit", handleUserBarometerSubmit);
+      userProgressResetForm?.addEventListener("submit", handleUserProgressResetSubmit);
+      userBarometersBody?.addEventListener("click", handleUserBarometersClick);
     }
 
     const loadingTasks = [];
@@ -646,6 +863,7 @@
       await refreshThresholdStatus(currentOrdersValue);
       const thresholdRows = await loadThresholdRules();
       updateVisibilityDashboard(thresholdRows);
+      await loadUserBarometers();
     }
   }
 

@@ -222,6 +222,109 @@
                 </tbody>
               </table>
             </div>
+            <hr />
+            <h3>Baromètres utilisateurs (modèles publics)</h3>
+            <p class="admin-empty">
+              Ces baromètres sont visibles par tous, mais la progression reste privée par utilisateur.
+            </p>
+            <form id="admin-user-barometer-form" class="admin-form-inline">
+              <div class="form-field">
+                <label for="user-barometer-title">Titre</label>
+                <input
+                  id="user-barometer-title"
+                  name="title"
+                  type="text"
+                  maxlength="120"
+                  placeholder="Booster offert Lorcana"
+                  required
+                />
+              </div>
+              <div class="form-field">
+                <label for="user-barometer-target">Objectif</label>
+                <input id="user-barometer-target" name="target_value" type="number" min="1" required />
+              </div>
+              <div class="form-field">
+                <label for="user-barometer-mode">Type de progression</label>
+                <select id="user-barometer-mode" name="progression_mode">
+                  <option value="repeatable_reset">Reset automatique à chaque objectif atteint</option>
+                  <option value="one_time_unlock">Déblocage unique à vie</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="user-barometer-reward">Récompense</label>
+                <input
+                  id="user-barometer-reward"
+                  name="reward_text"
+                  type="text"
+                  maxlength="220"
+                  placeholder="1 booster offert"
+                  required
+                />
+              </div>
+              <div class="form-field">
+                <label for="user-barometer-category">Catégorie (optionnel)</label>
+                <input
+                  id="user-barometer-category"
+                  name="game_category"
+                  type="text"
+                  maxlength="80"
+                  placeholder="lorcana"
+                />
+              </div>
+              <div class="form-field">
+                <label for="user-barometer-description">Description (optionnel)</label>
+                <input
+                  id="user-barometer-description"
+                  name="description"
+                  type="text"
+                  maxlength="240"
+                  placeholder="1 booster achete = 1 point"
+                />
+              </div>
+              <button type="submit" class="btn">Ajouter le baromètre</button>
+            </form>
+            <p id="admin-user-barometer-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Titre</th>
+                    <th>Objectif</th>
+                    <th>Mode</th>
+                    <th>Récompense</th>
+                    <th>Catégorie</th>
+                    <th>Actif</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-user-barometers-body">
+                  <tr>
+                    <td colspan="7" class="admin-empty">Chargement des baromètres utilisateurs…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <hr />
+            <h3>Reset manuel progression utilisateur</h3>
+            <p class="admin-empty">
+              Réinitialise la progression d'un utilisateur sur un baromètre spécifique.
+            </p>
+            <form id="admin-user-progress-reset-form" class="admin-form-inline">
+              <div class="form-field">
+                <label for="admin-reset-user-id">Utilisateur</label>
+                <select id="admin-reset-user-id" name="user_id" required>
+                  <option value="" selected disabled>Choisir un utilisateur</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="admin-reset-template-id">Baromètre</label>
+                <select id="admin-reset-template-id" name="template_id" required>
+                  <option value="" selected disabled>Choisir un baromètre</option>
+                </select>
+              </div>
+              <button type="submit" class="btn">Forcer le reset</button>
+            </form>
+            <p id="admin-user-progress-reset-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
           </article>
         </div>
       </section>

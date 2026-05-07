@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon espace - Bouguenais Ludique</title>
+    <meta name="description" content="Suivi personnel des commandes sur Bouguenais Ludique." />
+    <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <style>
+      .space-layout {
+        display: grid;
+        gap: 1rem;
+      }
+      .space-card {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 1rem;
+        padding: 1rem;
+        background: #fff;
+      }
+      .space-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 0.8rem;
+      }
+      .admin-form-inline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: end;
+      }
+      .admin-form-inline .form-field {
+        flex: 1 1 220px;
+      }
+      .space-metric {
+        margin: 0.2rem 0 0;
+        font-weight: 700;
+      }
+      .admin-visibility-card {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 0.8rem;
+        padding: 0.75rem;
+        background: #fcfcfc;
+      }
+      .admin-visibility-card h4 {
+        margin: 0 0 0.4rem;
+        font-size: 0.95rem;
+      }
+      .admin-visibility-metric {
+        margin: 0.4rem 0;
+        font-weight: 700;
+      }
+      .admin-visibility-track {
+        width: 100%;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+      .admin-visibility-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #1e40af, #3b82f6, #eab308);
+      }
+    </style>
+  </head>
+  <body class="content-page">
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark" aria-hidden="true">🎲</span>
+          <span class="logo-title">Bouguenais Ludique</span>
+        </a>
+        <nav class="main-nav">
+          <a href="../index.html">Accueil</a>
+          <a href="./catalogue.html">Catalogue</a>
+          <a href="./contact.html">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <p class="eyebrow">Espace joueur</p>
+          <h1>Mon baromètre</h1>
+          <p class="hero-text">
+            Suis ta contribution personnelle en commandes, en parallèle du baromètre global.
+          </p>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="container space-layout">
+          <p id="space-status" class="form-feedback" role="status" aria-live="polite" hidden></p>
+
+          <article class="space-card">
+            <h2>Baromètres</h2>
+            <div class="space-grid">
+              <div>
+                <p class="project-barometer-heading">Global (visible par tous)</p>
+                <p id="space-global-count" class="space-metric">0 / 0 commandes</p>
+                <div class="project-barometer-track" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                  <div id="space-global-fill" class="project-barometer-fill" style="--bar-target: 0%"></div>
+                </div>
+              </div>
+              <div>
+                <p class="project-barometer-heading">Personnel (visible uniquement par toi)</p>
+                <p id="space-personal-count" class="space-metric">0 / 0 commandes</p>
+                <div class="project-barometer-track" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                  <div id="space-personal-fill" class="project-barometer-fill" style="--bar-target: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="space-card">
+            <h2>Ajouter des commandes</h2>
+            <form id="space-order-form" class="admin-form-inline">
+              <div class="form-field">
+                <label for="space-order-template">Baromètre concerné</label>
+                <select id="space-order-template" name="template_id" required>
+                  <option value="" selected disabled>Choisir un baromètre</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="space-order-count">Nombre de commandes</label>
+                <input id="space-order-count" name="order_count" type="number" min="1" required />
+              </div>
+              <div class="form-field">
+                <label for="space-order-note">Note (optionnel)</label>
+                <input id="space-order-note" name="note" type="text" maxlength="220" />
+              </div>
+              <button type="submit" class="btn">Enregistrer</button>
+            </form>
+            <p id="space-order-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
+          </article>
+
+          <article class="space-card">
+            <h2>Mes baromètres utilisateurs</h2>
+            <div id="space-user-barometers-grid" class="space-grid" aria-live="polite"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© 2026 Bouguenais Ludique</p>
+      </div>
+    </footer>
+
+    <script src="../assets/js/auth-config.js"></script>
+    <script src="../assets/js/auth-api.js"></script>
+    <script src="../assets/js/auth-ui.js"></script>
+    <script src="../assets/js/mon-espace.js"></script>
+    <script src="../assets/js/script.js"></script>
+  </body>
+</html>
