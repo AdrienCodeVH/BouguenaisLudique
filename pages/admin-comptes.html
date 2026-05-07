@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin comptes - Bouguenais Ludique</title>
+    <meta name="description" content="Gestion des comptes administrateur Bouguenais Ludique." />
+    <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <style>
+      .admin-layout {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .admin-card {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 1rem;
+        padding: 1rem;
+        background: #fff;
+      }
+      .admin-table-wrap {
+        overflow-x: auto;
+      }
+      .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .admin-table th,
+      .admin-table td {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 0.6rem 0.4rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      .admin-empty {
+        color: rgba(30, 30, 30, 0.7);
+      }
+    </style>
+  </head>
+  <body class="content-page">
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark" aria-hidden="true">🎲</span>
+          <span class="logo-title">Bouguenais Ludique</span>
+        </a>
+        <nav class="main-nav">
+          <a href="../index.html">Accueil</a>
+          <a href="./catalogue.html">Catalogue</a>
+          <a href="./contact.html">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <p class="eyebrow">Administration</p>
+          <h1>Comptes utilisateurs</h1>
+          <p class="hero-text">Mise à jour des rôles et accès.</p>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="container admin-layout">
+          <p id="admin-status" class="form-feedback" role="status" aria-live="polite" hidden></p>
+          <article class="admin-card" id="admin-accounts-section" hidden>
+            <h2>Gestion des comptes</h2>
+            <p class="admin-empty">Mets à jour les rôles utilisateur (`client`, `employee`, `admin`).</p>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Utilisateur</th>
+                    <th>Nom affiché</th>
+                    <th>Rôle</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-accounts-body">
+                  <tr>
+                    <td colspan="4" class="admin-empty">Chargement des comptes…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© 2026 Bouguenais Ludique</p>
+      </div>
+    </footer>
+
+    <script src="../assets/js/auth-config.js"></script>
+    <script src="../assets/js/auth-api.js"></script>
+    <script src="../assets/js/auth-ui.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/script.js"></script>
+  </body>
+</html>

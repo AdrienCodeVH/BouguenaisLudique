@@ -21,6 +21,38 @@
         padding: 1rem;
         background: #fff;
       }
+      .admin-shortcuts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 0.85rem;
+      }
+      .admin-shortcut-card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 0.9rem;
+        padding: 0.9rem;
+        background: linear-gradient(160deg, #ffffff, #f7faff);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .admin-shortcut-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(30, 64, 175, 0.32);
+        box-shadow: 0 10px 24px rgba(30, 64, 175, 0.12);
+      }
+      .admin-shortcut-card h3 {
+        margin: 0 0 0.25rem;
+        font-size: 1rem;
+      }
+      .admin-shortcut-card p {
+        margin: 0;
+        font-size: 0.92rem;
+        color: rgba(30, 30, 30, 0.78);
+      }
       .admin-form-inline {
         display: flex;
         flex-wrap: wrap;
@@ -114,200 +146,23 @@
         <div class="container admin-layout">
           <p id="admin-status" class="form-feedback" role="status" aria-live="polite" hidden></p>
 
-          <article class="admin-card" id="admin-accounts-section" hidden>
-            <h2>Gestion des comptes</h2>
-            <p class="admin-empty">
-              Mets à jour les rôles utilisateur (`client`, `employee`, `admin`).
-            </p>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Utilisateur</th>
-                    <th>Nom affiché</th>
-                    <th>Rôle</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-accounts-body">
-                  <tr>
-                    <td colspan="4" class="admin-empty">Chargement des comptes…</td>
-                  </tr>
-                </tbody>
-              </table>
+          <nav id="admin-services-nav" class="admin-card" aria-label="Services principaux" hidden>
+            <h2>Services principaux</h2>
+            <div class="admin-shortcuts">
+              <a class="admin-shortcut-card" href="./admin-comptes.html">
+                <h3>Comptes utilisateurs</h3>
+                <p>Modifier les rôles et gérer les accès.</p>
+              </a>
+              <a class="admin-shortcut-card" href="./admin-barometre.html">
+                <h3>Baromètre</h3>
+                <p>Piloter les commandes et les règles de seuil.</p>
+              </a>
+              <a class="admin-shortcut-card" href="./admin-produits.html">
+                <h3>Produits</h3>
+                <p>Ajouter ou supprimer des produits du catalogue.</p>
+              </a>
             </div>
-          </article>
-
-          <article class="admin-card" id="admin-barometer-section" hidden>
-            <h2>Gestion du baromètre</h2>
-            <div class="project-barometer" aria-label="Prévisualisation baromètre accueil">
-              <div class="project-barometer-top">
-                <p class="project-barometer-heading">Prévisualisation accueil</p>
-                <p id="admin-barometer-preview-count" class="project-barometer-count">
-                  <strong>0</strong>
-                  <span class="project-barometer-count-sep">/</span>
-                  0 commandes
-                </p>
-              </div>
-              <div
-                id="admin-barometer-preview-track"
-                class="project-barometer-track"
-                role="progressbar"
-                aria-valuenow="0"
-                aria-valuemin="0"
-                aria-valuemax="100"
-              >
-                <div id="admin-barometer-preview-fill" class="project-barometer-fill" style="--bar-target: 0%"></div>
-              </div>
-              <p id="admin-barometer-preview-hint" class="project-barometer-hint">Prochain palier : -</p>
-            </div>
-            <div class="admin-visibility-grid" aria-label="Vue baromètres en cours">
-              <article class="admin-visibility-card">
-                <h4>Baromètre global</h4>
-                <p id="admin-visibility-global-metric" class="admin-visibility-metric">-- / --</p>
-                <div class="admin-visibility-track">
-                  <div id="admin-visibility-global-fill" class="admin-visibility-fill"></div>
-                </div>
-              </article>
-              <article class="admin-visibility-card">
-                <h4>Baromètre global (règles)</h4>
-                <p id="admin-visibility-rules-global-metric" class="admin-visibility-metric">-- / --</p>
-                <div class="admin-visibility-track">
-                  <div id="admin-visibility-rules-global-fill" class="admin-visibility-fill"></div>
-                </div>
-              </article>
-              <article class="admin-visibility-card">
-                <h4>Baromètre utilisateurs</h4>
-                <p id="admin-visibility-rules-users-metric" class="admin-visibility-metric">-- / --</p>
-                <div class="admin-visibility-track">
-                  <div id="admin-visibility-rules-users-fill" class="admin-visibility-fill"></div>
-                </div>
-              </article>
-            </div>
-            <form id="admin-barometer-form" class="admin-form-inline">
-              <div class="form-field">
-                <label for="barometer-current">Commandes actuelles</label>
-                <input id="barometer-current" name="current_orders" type="number" min="0" required />
-              </div>
-              <div class="form-field">
-                <label for="barometer-target">Objectif</label>
-                <input id="barometer-target" name="target_orders" type="number" min="1" required />
-              </div>
-              <div class="form-field">
-                <label for="barometer-milestone">Texte prochain palier</label>
-                <input
-                  id="barometer-milestone"
-                  name="next_milestone"
-                  type="text"
-                  maxlength="220"
-                  required
-                />
-              </div>
-              <button type="submit" class="btn">Enregistrer</button>
-            </form>
-            <p id="admin-barometer-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
-            <hr />
-            <h3>Règles de seuil</h3>
-            <p class="admin-empty">
-              Exemple : à partir de 1000 commandes, déclencher une action marketing.
-            </p>
-            <form id="admin-threshold-form" class="admin-form-inline">
-              <div class="form-field">
-                <label for="threshold-min-orders">Seuil (commandes min)</label>
-                <input id="threshold-min-orders" name="min_orders" type="number" min="1" required />
-              </div>
-              <div class="form-field">
-                <label for="threshold-label">Action / libellé</label>
-                <input
-                  id="threshold-label"
-                  name="label"
-                  type="text"
-                  maxlength="180"
-                  placeholder="Lancer une campagne pub locale"
-                  required
-                />
-              </div>
-              <div class="form-field">
-                <label for="threshold-scope">Portée</label>
-                <select id="threshold-scope" name="scope">
-                  <option value="global">Globale</option>
-                  <option value="personal">Individuelle (moi)</option>
-                </select>
-              </div>
-              <div class="form-field">
-                <label for="threshold-visibility">Visibilité</label>
-                <select id="threshold-visibility" name="visibility">
-                  <option value="admin">Admin uniquement</option>
-                  <option value="public">Visible publiquement</option>
-                </select>
-              </div>
-              <button type="submit" class="btn">Ajouter la règle</button>
-            </form>
-            <p id="admin-threshold-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Seuil</th>
-                    <th>Action</th>
-                    <th>Portée</th>
-                    <th>Visibilité</th>
-                    <th>Statut</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-thresholds-body">
-                  <tr>
-                    <td colspan="6" class="admin-empty">Chargement des règles…</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </article>
-
-          <article class="admin-card" id="admin-products-section" hidden>
-            <h2>Gestion des produits</h2>
-            <form id="admin-product-form" class="admin-form-inline">
-              <div class="form-field">
-                <label for="product-name">Nom</label>
-                <input id="product-name" name="name" type="text" maxlength="120" required />
-              </div>
-              <div class="form-field">
-                <label for="product-category">Catégorie</label>
-                <input
-                  id="product-category"
-                  name="category"
-                  type="text"
-                  maxlength="60"
-                  placeholder="tcg, societe, classique..."
-                  required
-                />
-              </div>
-              <div class="form-field">
-                <label for="product-price">Prix (EUR)</label>
-                <input id="product-price" name="price_eur" type="number" min="0" step="0.01" required />
-              </div>
-              <button type="submit" class="btn">Ajouter</button>
-            </form>
-            <p id="admin-products-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Produit</th>
-                    <th>Catégorie</th>
-                    <th>Prix</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-products-body">
-                  <tr>
-                    <td colspan="4" class="admin-empty">Chargement des produits…</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </article>
+          </nav>
         </div>
       </section>
     </main>

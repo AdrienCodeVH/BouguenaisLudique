@@ -1,5 +1,6 @@
 (function () {
   const statusNode = document.getElementById("admin-status");
+  const servicesNav = document.getElementById("admin-services-nav");
   const accountsSection = document.getElementById("admin-accounts-section");
   const accountsBody = document.getElementById("admin-accounts-body");
   const barometerSection = document.getElementById("admin-barometer-section");
@@ -22,9 +23,15 @@
   const productForm = document.getElementById("admin-product-form");
   const productsFeedback = document.getElementById("admin-products-feedback");
   const productsBody = document.getElementById("admin-products-body");
+  const productCategorySelect = document.getElementById("product-category");
+  const hasAccountsModule = Boolean(accountsSection && accountsBody);
+  const hasBarometerModule = Boolean(barometerSection && barometerForm);
+  const hasProductsModule = Boolean(productsSection && productsBody && productForm);
+  const defaultProductCategories = ["tcg", "jeux-societe", "classiques-puzzle-echecs"];
   let accessToken = "";
   let currentUserId = "";
   let currentOrdersValue = 0;
+  let supportsAdvancedProductFields = true;
 
   function setStatus(message, isError) {
     if (!statusNode) return;
@@ -96,21 +103,71 @@
     if (!productsBody) return;
     if (!rows.length) {
       productsBody.innerHTML =
-        '<tr><td colspan="4" class="admin-empty">Aucun produit en base.</td></tr>';
+        '<tr><td colspan="6" class="admin-empty">Aucun produit en base.</td></tr>';
       return;
     }
     productsBody.innerHTML = rows
-      .map(
-        (row) => `
+      .map((row) => {
+        const ageMin = Number.isFinite(Number(row.age_min)) ? Number(row.age_min) : null;
+        const ageMax = Number.isFinite(Number(row.age_max)) ? Number(row.age_max) : null;
+        let ageLabel = "-";
+        if (ageMin !== null && ageMax !== null) ageLabel = `${ageMin} - ${ageMax} ans`;
+        else if (ageMin !== null) ageLabel = `${ageMin}+ ans`;
+        else if (ageMax !== null) ageLabel = `jusqu'à ${ageMax} ans`;
+        const mediaLinks = [];
+        if (row.image_url) {
+          mediaLinks.push(
+            `<a class="admin-media-link" href="${row.image_url}" target="_blank" rel="noopener noreferrer">Photo</a>`
+          );
+        }
+        if (row.video_url) {
+          mediaLinks.push(
+            `<a class="admin-media-link" href="${row.video_url}" target="_blank" rel="noopener noreferrer">Vidéo</a>`
+          );
+        }
+        return `
           <tr>
             <td>${row.name}</td>
             <td>${row.category}</td>
             <td>${Number(row.price_eur).toFixed(2)} EUR</td>
+            <td>${ageLabel}</td>
+            <td>${mediaLinks.join(" · ") || "-"}</td>
             <td><button class="btn" type="button" data-product-delete data-product-id="${row.id}">Supprimer</button></td>
           </tr>
-        `
-      )
+        `;
+      })
       .join("");
+  }
+
+  function renderProductCategoryOptions(rows) {
+    if (!(productCategorySelect instanceof HTMLSelectElement)) return;
+    let categories = Array.from(
+      new Set(
+        rows
+          .map((row) => String(row.category || "").trim())
+          .filter(Boolean)
+      )
+    ).sort((a, b) => a.localeCompare(b, "fr"));
+    if (!categories.length) {
+      categories = [...defaultProductCategories];
+    }
+    const previousValue = productCategorySelect.value;
+    productCategorySelect.innerHTML = ['<option value="" disabled>Choisir une catégorie</option>'].concat(
+      categories.map((category) => `<option value="${category}">${category}</option>`)
+    ).join("");
+    productCategorySelect.disabled = false;
+    if (previousValue && categories.includes(previousValue)) {
+      productCategorySelect.value = previousValue;
+    } else {
+      productCategorySelect.value = "";
+    }
+  }
+
+  function readOptionalNumber(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : Number.NaN;
   }
 
   function renderThresholdRules(rows) {
@@ -239,8 +296,27 @@
   }
 
   async function loadProducts() {
-    const res = await apiFetch("/rest/v1/products?select=id,name,category,price_eur&order=created_at.desc");
-    const rows = await res.json();
+    let rows = [];
+    if (supportsAdvancedProductFields) {
+      try {
+        const res = await apiFetch(
+          "/rest/v1/products?select=id,name,category,price_eur,age_min,age_max,image_url,video_url&order=created_at.desc"
+        );
+        rows = await res.json();
+      } catch (err) {
+        supportsAdvancedProductFields = false;
+        setFeedback(
+          productsFeedback,
+          "Les nouveaux champs produits ne sont pas encore actifs en base. Exécute le SQL de migration dans supabase/schema.sql.",
+          true
+        );
+      }
+    }
+    if (!supportsAdvancedProductFields) {
+      const res = await apiFetch("/rest/v1/products?select=id,name,category,price_eur&order=created_at.desc");
+      rows = await res.json();
+    }
+    renderProductCategoryOptions(rows);
     renderProducts(rows);
   }
 
@@ -365,22 +441,56 @@
     const name = String(productForm.name.value || "").trim();
     const category = String(productForm.category.value || "").trim();
     const price = Number(productForm.price_eur.value);
-    if (!name || !category || !Number.isFinite(price) || price < 0) {
+    const ageMin = readOptionalNumber(productForm.age_min?.value);
+    const ageMax = readOptionalNumber(productForm.age_max?.value);
+    const imageUrl = String(productForm.image_url?.value || "").trim();
+    const videoUrl = String(productForm.video_url?.value || "").trim();
+
+    if (
+      !name ||
+      !category ||
+      !Number.isFinite(price) ||
+      price < 0 ||
+      Number.isNaN(ageMin) ||
+      Number.isNaN(ageMax)
+    ) {
       setFeedback(productsFeedback, "Données produit invalides.", true);
       return;
     }
+    if (ageMin !== null && ageMin < 0) {
+      setFeedback(productsFeedback, "Âge minimum invalide.", true);
+      return;
+    }
+    if (ageMax !== null && ageMax < 0) {
+      setFeedback(productsFeedback, "Âge maximum invalide.", true);
+      return;
+    }
+    if (ageMin !== null && ageMax !== null && ageMax < ageMin) {
+      setFeedback(productsFeedback, "L'âge maximum doit être supérieur ou égal à l'âge minimum.", true);
+      return;
+    }
     try {
+      const payload = {
+        name,
+        category,
+        price_eur: price,
+        is_active: true,
+      };
+      if (supportsAdvancedProductFields) {
+        payload.age_min = ageMin;
+        payload.age_max = ageMax;
+        payload.image_url = imageUrl || null;
+        payload.video_url = videoUrl || null;
+      }
       await apiFetch("/rest/v1/products", {
         method: "POST",
         headers: { Prefer: "return=representation" },
-        body: JSON.stringify({
-          name,
-          category,
-          price_eur: price,
-          is_active: true,
-        }),
+        body: JSON.stringify(payload),
       });
       productForm.reset();
+      if (productCategorySelect instanceof HTMLSelectElement) {
+        productCategorySelect.value = "";
+      }
       setFeedback(productsFeedback, "Produit ajouté.", false);
       await loadProducts();
     } catch (err) {
@@ -508,21 +618,35 @@
     }
 
     setStatus("Connexion admin valide.", false);
-    if (accountsSection) accountsSection.hidden = false;
-    if (barometerSection) barometerSection.hidden = false;
-    if (productsSection) productsSection.hidden = false;
+    if (servicesNav) servicesNav.hidden = false;
+    if (hasAccountsModule && accountsSection) accountsSection.hidden = false;
+    if (hasBarometerModule && barometerSection) barometerSection.hidden = false;
+    if (hasProductsModule && productsSection) productsSection.hidden = false;
 
-    accountsBody?.addEventListener("click", handleAccountsClick);
-    productsBody?.addEventListener("click", handleProductsClick);
-    thresholdsBody?.addEventListener("click", handleThresholdsClick);
-    barometerForm?.addEventListener("submit", handleBarometerSubmit);
-    thresholdForm?.addEventListener("submit", handleThresholdSubmit);
-    productForm?.addEventListener("submit", handleProductSubmit);
+    if (hasAccountsModule) {
+      accountsBody?.addEventListener("click", handleAccountsClick);
+    }
+    if (hasProductsModule) {
+      productsBody?.addEventListener("click", handleProductsClick);
+      productForm?.addEventListener("submit", handleProductSubmit);
+    }
+    if (hasBarometerModule) {
+      thresholdsBody?.addEventListener("click", handleThresholdsClick);
+      barometerForm?.addEventListener("submit", handleBarometerSubmit);
+      thresholdForm?.addEventListener("submit", handleThresholdSubmit);
+    }
 
-    await Promise.all([loadAccounts(), loadBarometer(), loadProducts()]);
-    await refreshThresholdStatus(currentOrdersValue);
-    const thresholdRows = await loadThresholdRules();
-    updateVisibilityDashboard(thresholdRows);
+    const loadingTasks = [];
+    if (hasAccountsModule) loadingTasks.push(loadAccounts());
+    if (hasBarometerModule) loadingTasks.push(loadBarometer());
+    if (hasProductsModule) loadingTasks.push(loadProducts());
+    await Promise.all(loadingTasks);
+
+    if (hasBarometerModule) {
+      await refreshThresholdStatus(currentOrdersValue);
+      const thresholdRows = await loadThresholdRules();
+      updateVisibilityDashboard(thresholdRows);
+    }
   }
 
   initAdminPage();

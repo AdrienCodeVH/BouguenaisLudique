@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin baromètre - Bouguenais Ludique</title>
+    <meta name="description" content="Gestion du baromètre administrateur Bouguenais Ludique." />
+    <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <style>
+      .admin-layout {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .admin-card {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 1rem;
+        padding: 1rem;
+        background: #fff;
+      }
+      .admin-form-inline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: end;
+      }
+      .admin-form-inline .form-field {
+        flex: 1 1 220px;
+      }
+      .admin-table-wrap {
+        overflow-x: auto;
+      }
+      .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .admin-table th,
+      .admin-table td {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 0.6rem 0.4rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      .admin-empty {
+        color: rgba(30, 30, 30, 0.7);
+      }
+      .admin-visibility-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .admin-visibility-card {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 0.8rem;
+        padding: 0.75rem;
+        background: #fcfcfc;
+      }
+      .admin-visibility-card h4 {
+        margin: 0 0 0.4rem;
+        font-size: 0.92rem;
+      }
+      .admin-visibility-metric {
+        margin: 0 0 0.45rem;
+        font-weight: 700;
+      }
+      .admin-visibility-track {
+        width: 100%;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+      .admin-visibility-fill {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #1e40af, #3b82f6, #eab308);
+      }
+    </style>
+  </head>
+  <body class="content-page">
+    <header class="site-header">
+      <div class="container">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark" aria-hidden="true">🎲</span>
+          <span class="logo-title">Bouguenais Ludique</span>
+        </a>
+        <nav class="main-nav">
+          <a href="../index.html">Accueil</a>
+          <a href="./catalogue.html">Catalogue</a>
+          <a href="./contact.html">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <p class="eyebrow">Administration</p>
+          <h1>Baromètre</h1>
+          <p class="hero-text">Pilotage des commandes et des règles de seuil.</p>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="container admin-layout">
+          <p id="admin-status" class="form-feedback" role="status" aria-live="polite" hidden></p>
+          <article class="admin-card" id="admin-barometer-section" hidden>
+            <h2>Gestion du baromètre</h2>
+            <div class="project-barometer" aria-label="Prévisualisation baromètre accueil">
+              <div class="project-barometer-top">
+                <p class="project-barometer-heading">Prévisualisation accueil</p>
+                <p id="admin-barometer-preview-count" class="project-barometer-count">
+                  <strong>0</strong>
+                  <span class="project-barometer-count-sep">/</span>
+                  0 commandes
+                </p>
+              </div>
+              <div
+                id="admin-barometer-preview-track"
+                class="project-barometer-track"
+                role="progressbar"
+                aria-valuenow="0"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <div id="admin-barometer-preview-fill" class="project-barometer-fill" style="--bar-target: 0%"></div>
+              </div>
+              <p id="admin-barometer-preview-hint" class="project-barometer-hint">Prochain palier : -</p>
+            </div>
+            <div class="admin-visibility-grid" aria-label="Vue baromètres en cours">
+              <article class="admin-visibility-card">
+                <h4>Baromètre global</h4>
+                <p id="admin-visibility-global-metric" class="admin-visibility-metric">-- / --</p>
+                <div class="admin-visibility-track">
+                  <div id="admin-visibility-global-fill" class="admin-visibility-fill"></div>
+                </div>
+              </article>
+              <article class="admin-visibility-card">
+                <h4>Baromètre global (règles)</h4>
+                <p id="admin-visibility-rules-global-metric" class="admin-visibility-metric">-- / --</p>
+                <div class="admin-visibility-track">
+                  <div id="admin-visibility-rules-global-fill" class="admin-visibility-fill"></div>
+                </div>
+              </article>
+              <article class="admin-visibility-card">
+                <h4>Baromètre utilisateurs</h4>
+                <p id="admin-visibility-rules-users-metric" class="admin-visibility-metric">-- / --</p>
+                <div class="admin-visibility-track">
+                  <div id="admin-visibility-rules-users-fill" class="admin-visibility-fill"></div>
+                </div>
+              </article>
+            </div>
+            <form id="admin-barometer-form" class="admin-form-inline">
+              <div class="form-field">
+                <label for="barometer-current">Commandes actuelles</label>
+                <input id="barometer-current" name="current_orders" type="number" min="0" required />
+              </div>
+              <div class="form-field">
+                <label for="barometer-target">Objectif</label>
+                <input id="barometer-target" name="target_orders" type="number" min="1" required />
+              </div>
+              <div class="form-field">
+                <label for="barometer-milestone">Texte prochain palier</label>
+                <input id="barometer-milestone" name="next_milestone" type="text" maxlength="220" required />
+              </div>
+              <button type="submit" class="btn">Enregistrer</button>
+            </form>
+            <p id="admin-barometer-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
+            <hr />
+            <h3>Règles de seuil</h3>
+            <p class="admin-empty">Exemple : à partir de 1000 commandes, déclencher une action marketing.</p>
+            <form id="admin-threshold-form" class="admin-form-inline">
+              <div class="form-field">
+                <label for="threshold-min-orders">Seuil (commandes min)</label>
+                <input id="threshold-min-orders" name="min_orders" type="number" min="1" required />
+              </div>
+              <div class="form-field">
+                <label for="threshold-label">Action / libellé</label>
+                <input
+                  id="threshold-label"
+                  name="label"
+                  type="text"
+                  maxlength="180"
+                  placeholder="Lancer une campagne pub locale"
+                  required
+                />
+              </div>
+              <div class="form-field">
+                <label for="threshold-scope">Portée</label>
+                <select id="threshold-scope" name="scope">
+                  <option value="global">Globale</option>
+                  <option value="personal">Individuelle (moi)</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="threshold-visibility">Visibilité</label>
+                <select id="threshold-visibility" name="visibility">
+                  <option value="admin">Admin uniquement</option>
+                  <option value="public">Visible publiquement</option>
+                </select>
+              </div>
+              <button type="submit" class="btn">Ajouter la règle</button>
+            </form>
+            <p id="admin-threshold-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Seuil</th>
+                    <th>Action</th>
+                    <th>Portée</th>
+                    <th>Visibilité</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-thresholds-body">
+                  <tr>
+                    <td colspan="6" class="admin-empty">Chargement des règles…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© 2026 Bouguenais Ludique</p>
+      </div>
+    </footer>
+
+    <script src="../assets/js/auth-config.js"></script>
+    <script src="../assets/js/auth-api.js"></script>
+    <script src="../assets/js/auth-ui.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/script.js"></script>
+  </body>
+</html>

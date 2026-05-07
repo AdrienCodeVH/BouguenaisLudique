@@ -143,10 +143,47 @@ create table if not exists public.products (
   name text not null,
   category text not null,
   price_eur numeric(10,2) not null default 0 check (price_eur >= 0),
+  age_min integer check (age_min is null or age_min >= 0),
+  age_max integer check (age_max is null or age_max >= 0),
+  image_url text,
+  video_url text,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.products
+  add column if not exists age_min integer;
+
+alter table public.products
+  add column if not exists age_max integer;
+
+alter table public.products
+  add column if not exists image_url text;
+
+alter table public.products
+  add column if not exists video_url text;
+
+alter table public.products
+  drop constraint if exists products_age_min_check;
+
+alter table public.products
+  add constraint products_age_min_check
+  check (age_min is null or age_min >= 0);
+
+alter table public.products
+  drop constraint if exists products_age_max_check;
+
+alter table public.products
+  add constraint products_age_max_check
+  check (age_max is null or age_max >= 0);
+
+alter table public.products
+  drop constraint if exists products_age_range_check;
+
+alter table public.products
+  add constraint products_age_range_check
+  check (age_min is null or age_max is null or age_max >= age_min);
 
 create table if not exists public.admin_threshold_rules (
   id bigint primary key generated always as identity,

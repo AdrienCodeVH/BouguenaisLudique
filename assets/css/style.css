@@ -572,10 +572,46 @@ a {
   color: var(--text);
 }
 
+.form-field select,
+.admin-table select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.65rem 2.2rem 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.2;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--blue) 80%, var(--text) 20%) 50%),
+    linear-gradient(135deg, color-mix(in srgb, var(--blue) 80%, var(--text) 20%) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 2px),
+    calc(100% - 10px) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
 .form-field input:focus {
   outline: none;
   border-color: color-mix(in srgb, var(--blue) 45%, var(--border));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 15%, transparent);
+}
+
+.form-field select:focus,
+.admin-table select:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--blue) 45%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 15%, transparent);
+}
+
+.form-field select:invalid {
+  color: var(--text-light);
 }
 
 .form-hint {
