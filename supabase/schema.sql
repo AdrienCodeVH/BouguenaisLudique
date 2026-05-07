@@ -125,3 +125,128 @@ set role = 'admin'
 from auth.users u
 where u.id = p.id
   and lower(u.email) = lower('ton-email-admin@exemple.com');
+
+-- =============================================================================
+-- Données administrables : baromètre du projet + produits
+-- =============================================================================
+
+create table if not exists public.project_barometer (
+  id bigint primary key generated always as identity,
+  current_orders integer not null default 50 check (current_orders >= 0),
+  target_orders integer not null default 100 check (target_orders > 0),
+  next_milestone text not null default 'remise en main propre & café offert',
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.products (
+  id bigint primary key generated always as identity,
+  name text not null,
+  category text not null,
+  price_eur numeric(10,2) not null default 0 check (price_eur >= 0),
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.admin_threshold_rules (
+  id bigint primary key generated always as identity,
+  min_orders integer not null check (min_orders > 0),
+  label text not null,
+  scope text not null default 'global' check (scope in ('global', 'personal')),
+  visibility text not null default 'admin' check (visibility in ('admin', 'public')),
+  owner_user_id uuid references public.profiles(id) on delete set null,
+  is_triggered boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.project_barometer enable row level security;
+alter table public.products enable row level security;
+alter table public.admin_threshold_rules enable row level security;
+
+drop policy if exists "project_barometer_select_public" on public.project_barometer;
+create policy "project_barometer_select_public"
+  on public.project_barometer for select
+  using (true);
+
+drop policy if exists "project_barometer_admin_write" on public.project_barometer;
+create policy "project_barometer_admin_write"
+  on public.project_barometer for all
+  using (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "products_select_public" on public.products;
+create policy "products_select_public"
+  on public.products for select
+  using (true);
+
+drop policy if exists "products_admin_write" on public.products;
+create policy "products_admin_write"
+  on public.products for all
+  using (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "admin_threshold_rules_select_public_or_admin" on public.admin_threshold_rules;
+create policy "admin_threshold_rules_select_public_or_admin"
+  on public.admin_threshold_rules for select
+  using (
+    visibility = 'public'
+    or exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "admin_threshold_rules_admin_write" on public.admin_threshold_rules;
+create policy "admin_threshold_rules_admin_write"
+  on public.admin_threshold_rules for all
+  using (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+insert into public.project_barometer (id, current_orders, target_orders, next_milestone)
+values (1, 50, 100, 'remise en main propre & café offert')
+on conflict (id) do nothing;

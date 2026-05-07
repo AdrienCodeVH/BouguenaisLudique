@@ -126,3 +126,78 @@ document.addEventListener("keydown", (event) => {
     window.alert(comingSoonMessage);
   }
 });
+
+async function loadProjectBarometer() {
+  const container = document.querySelector(".project-barometer");
+  if (!container || !window.BLAuth?.getSupabaseConfig) {
+    return;
+  }
+
+  const cfg = window.BLAuth.getSupabaseConfig();
+  if (!cfg.isConfigured) {
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `${cfg.url}/rest/v1/project_barometer?select=current_orders,target_orders,next_milestone&order=id.asc&limit=1`,
+      {
+        headers: {
+          apikey: cfg.key,
+          Authorization: `Bearer ${cfg.key}`,
+        },
+      }
+    );
+    if (!res.ok) return;
+    const rows = await res.json().catch(() => []);
+    if (!Array.isArray(rows) || rows.length === 0) return;
+    const data = rows[0];
+
+    const current = Number(data.current_orders);
+    const target = Number(data.target_orders);
+    if (!Number.isFinite(current) || !Number.isFinite(target) || target <= 0) return;
+
+    const progress = Math.max(0, Math.min(100, (current / target) * 100));
+    const strong = container.querySelector(".project-barometer-count strong");
+    const totalText = container.querySelector(".project-barometer-count");
+    const track = container.querySelector(".project-barometer-track");
+    const fill = container.querySelector(".project-barometer-fill");
+    const hint = container.querySelector(".project-barometer-hint");
+
+    if (strong) strong.textContent = String(current);
+    if (totalText) {
+      totalText.innerHTML = `<strong>${current}</strong><span class="project-barometer-count-sep">/</span>${target} commandes`;
+    }
+    if (track) {
+      track.setAttribute("aria-valuenow", String(current));
+      track.setAttribute("aria-valuemax", String(target));
+    }
+    if (fill) {
+      fill.style.setProperty("--bar-target", `${progress}%`);
+    }
+    if (hint && data.next_milestone) {
+      hint.textContent = `Prochain palier : ${data.next_milestone}`;
+    }
+
+    const rulesRes = await fetch(
+      `${cfg.url}/rest/v1/admin_threshold_rules?select=label,min_orders,is_triggered,visibility,scope&visibility=eq.public&scope=eq.global&is_triggered=eq.true&order=min_orders.asc`,
+      {
+        headers: {
+          apikey: cfg.key,
+          Authorization: `Bearer ${cfg.key}`,
+        },
+      }
+    );
+    if (!rulesRes.ok) return;
+    const rules = await rulesRes.json().catch(() => []);
+    if (hint && Array.isArray(rules) && rules.length > 0) {
+      const messages = rules.map((rule) => `${rule.label} (>= ${rule.min_orders})`);
+      hint.textContent = `Actions en cours : ${messages.join(" | ")}`;
+    }
+    container.hidden = false;
+  } catch (_) {
+    // Laisse le baromètre masque tant que les donnees ne sont pas disponibles.
+  }
+}
+
+loadProjectBarometer();

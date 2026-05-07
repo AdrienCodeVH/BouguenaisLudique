@@ -27,9 +27,8 @@
     return `${base}/pages/admin.html`;
   }
 
-  function getProfilePath() {
-    const base = getBasePath();
-    return `${base}/pages/connexion.html`;
+  function getProfilePath(isAdmin) {
+    return isAdmin ? getAdminPath() : getLoginPath();
   }
 
   function parseJwtPayload(token) {
@@ -71,6 +70,7 @@
   }
 
   function upsertAdminLink(nav, isAdmin) {
+    if (nav.querySelector("[data-auth-admin-profile-link]")) return;
     const existing = nav.querySelector("[data-auth-admin-link]");
     if (!isAdmin) {
       if (existing) existing.remove();
@@ -82,10 +82,11 @@
     nav.appendChild(adminLink);
   }
 
-  function upsertSessionLinks(nav, isLoggedIn) {
+  function upsertSessionLinks(nav, isLoggedIn, isAdmin) {
     const loginLink = nav.querySelector('a[href$="connexion.html"]');
     const signupLink = nav.querySelector('a[href$="inscription.html"]');
     const existingProfile = nav.querySelector("[data-auth-profile-link]");
+    const existingAdminProfile = nav.querySelector("[data-auth-admin-profile-link]");
     const existingLogout = nav.querySelector("[data-auth-logout]");
 
     if (!isLoggedIn) {
@@ -100,6 +101,7 @@
         );
       }
       if (existingProfile) existingProfile.remove();
+      if (existingAdminProfile) existingAdminProfile.remove();
       if (existingLogout) existingLogout.remove();
       return;
     }
@@ -107,7 +109,15 @@
     if (loginLink) loginLink.remove();
     if (signupLink) signupLink.remove();
 
-    if (!existingProfile) {
+    if (isAdmin) {
+      if (existingProfile) existingProfile.remove();
+      if (!existingAdminProfile) {
+        const adminProfileLink = createNavLink("Admin", getAdminPath(), "main-nav-btn main-nav-btn--primary");
+        adminProfileLink.setAttribute("data-auth-admin-profile-link", "true");
+        nav.appendChild(adminProfileLink);
+      }
+    } else if (!existingProfile) {
+      if (existingAdminProfile) existingAdminProfile.remove();
       const profileLink = createNavLink("Mon espace", getProfilePath(), "main-nav-btn main-nav-btn--ghost");
       profileLink.setAttribute("data-auth-profile-link", "true");
       nav.appendChild(profileLink);
@@ -134,7 +144,7 @@
     const session = getStoredSession();
     const accessToken = session && session.access_token;
     if (!accessToken) {
-      upsertSessionLinks(nav, false);
+      upsertSessionLinks(nav, false, false);
       upsertAdminLink(nav, false);
       return;
     }
@@ -144,7 +154,7 @@
     const role = await fetchCurrentRole(accessToken, userId);
     const isAdmin = role === "admin";
 
-    upsertSessionLinks(nav, true);
+    upsertSessionLinks(nav, true, isAdmin);
     upsertAdminLink(nav, isAdmin);
   }
 
