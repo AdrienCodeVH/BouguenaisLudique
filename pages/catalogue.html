@@ -102,11 +102,128 @@
 
           <div class="order-cta">
             <p>
-              Pour lancer une demande, indiquez simplement le jeu recherché, le budget approximatif
-              et vos contraintes éventuelles.
+              Pour lancer une demande, remplissez le formulaire ci-dessous. Il ne valide pas encore
+              une commande ferme : il sert à vérifier la disponibilité, le prix et le retrait avec vous.
             </p>
-            <a class="btn" href="./contact.html">Faire une demande de commande</a>
           </div>
+        </div>
+      </section>
+
+      <section class="section" id="demande-commande" aria-labelledby="order-request-title">
+        <div class="container container--narrow">
+          <h2 id="order-request-title" class="auth-section-title">Faire une demande de commande</h2>
+          <form id="order-request-form" class="auth-form order-request-form" novalidate>
+            <div class="form-field">
+              <label for="order-request-name">Nom ou pseudo</label>
+              <input
+                id="order-request-name"
+                name="customer_name"
+                type="text"
+                autocomplete="name"
+                minlength="2"
+                maxlength="80"
+                required
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-email">E-mail</label>
+              <input
+                id="order-request-email"
+                name="customer_email"
+                type="email"
+                autocomplete="email"
+                maxlength="160"
+                required
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-category">Univers recherché</label>
+              <select id="order-request-category" name="category" required>
+                <option value="" selected disabled>Choisir un univers</option>
+                <option value="tcg">Jeux de cartes à collectionner</option>
+                <option value="jeux-societe">Jeux de société</option>
+                <option value="classiques-puzzle-echecs">Classiques, puzzle et échecs</option>
+                <option value="idee-cadeau">Idée cadeau / conseil</option>
+                <option value="autre">Autre demande</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-product">Jeu ou produit recherché</label>
+              <input
+                id="order-request-product"
+                name="product_name"
+                type="text"
+                minlength="2"
+                maxlength="140"
+                placeholder="Ex. Sky Team, booster Pokémon, puzzle 1000 pièces..."
+                required
+              />
+            </div>
+
+            <div class="order-request-grid">
+              <div class="form-field">
+                <label for="order-request-player-age">Âge des joueurs</label>
+                <input
+                  id="order-request-player-age"
+                  name="player_age"
+                  type="number"
+                  min="0"
+                  max="120"
+                  inputmode="numeric"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="order-request-budget">Budget approximatif (€)</label>
+                <input
+                  id="order-request-budget"
+                  name="budget_eur"
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  inputmode="decimal"
+                />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-details">Détails de la demande</label>
+              <textarea
+                id="order-request-details"
+                name="details"
+                rows="5"
+                minlength="20"
+                maxlength="1000"
+                placeholder="Précisez le contexte : pour qui, occasion, délai souhaité, préférence de gamme, alternative acceptée..."
+                required
+              ></textarea>
+              <span class="form-hint">Minimum 20 caractères pour pouvoir répondre utilement.</span>
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-pickup">Contraintes de retrait</label>
+              <input
+                id="order-request-pickup"
+                name="pickup_notes"
+                type="text"
+                maxlength="220"
+                placeholder="Ex. soir en semaine, samedi matin, pas d'urgence..."
+              />
+            </div>
+
+            <label class="form-check">
+              <input id="order-request-consent" name="consent" type="checkbox" required />
+              <span>J'accepte d'être recontacté par e-mail au sujet de cette demande.</span>
+            </label>
+
+            <button type="submit" class="btn auth-form-submit">Envoyer la demande</button>
+            <p id="order-request-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
+          </form>
+        </div>
+      </section>
         </div>
       </section>
     </main>
@@ -120,6 +237,7 @@
     <script src="../assets/js/auth-config.js"></script>
     <script src="../assets/js/auth-api.js"></script>
     <script src="../assets/js/auth-ui.js"></script>
+    <script src="../assets/js/order-request.js"></script>
     <script src="../assets/js/script.js"></script>
   </body>
 </html>

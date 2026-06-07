@@ -997,6 +997,38 @@ a {
   margin-bottom: 0.9rem;
 }
 
+.order-request-form {
+  margin-top: 0.6rem;
+}
+
+.order-request-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.order-request-form textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 130px;
+}
+
+.order-request-form select,
+.order-request-form textarea {
+  border: 1px solid color-mix(in srgb, var(--blue) 16%, transparent);
+  border-radius: 10px;
+  padding: 0.72rem 0.8rem;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+}
+
+.order-request-form select:focus,
+.order-request-form textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--blue-light) 42%, transparent);
+  border-color: color-mix(in srgb, var(--blue) 32%, transparent);
+}
+
 .content-page-tcg .hero {
   padding-bottom: 2.4rem;
 }
@@ -1193,6 +1225,10 @@ a {
 
   .main-nav {
     width: 100%;
+  }
+
+  .order-request-grid {
+    grid-template-columns: 1fr;
   }
 
   .logo-title {

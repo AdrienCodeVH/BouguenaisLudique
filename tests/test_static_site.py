@@ -23,6 +23,35 @@ class AnchorParser(HTMLParser):
             self.hrefs.append(href)
 
 
+class FormParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.current_form_id = None
+        self.forms = {}
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "form":
+            self.current_form_id = attrs.get("id")
+            if self.current_form_id:
+                self.forms[self.current_form_id] = {"fields": {}, "buttons": []}
+            return
+
+        if not self.current_form_id:
+            return
+
+        if tag in {"input", "select", "textarea"}:
+            name = attrs.get("name") or attrs.get("id")
+            if name:
+                self.forms[self.current_form_id]["fields"][name] = {"tag": tag, **attrs}
+        elif tag == "button":
+            self.forms[self.current_form_id]["buttons"].append(attrs)
+
+    def handle_endtag(self, tag):
+        if tag == "form":
+            self.current_form_id = None
+
+
 class StaticSiteOrderFlowTests(unittest.TestCase):
     def test_order_page_replaces_public_catalogue(self):
         page = read_page("pages/catalogue.html")
@@ -36,7 +65,75 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
 
         self.assertNotIn("Produits disponibles", page)
         self.assertNotIn("catalogue-products-status", page)
-        self.assertNotIn("catalogue-products-grid", page)
+        self.assertIn('id="order-request-form"', page)
+        self.assertIn('src="../assets/js/order-request.js"', page)
+
+    def test_order_request_form_fields_have_html_validation(self):
+        page = read_page("pages/catalogue.html")
+        parser = FormParser()
+        parser.feed(page)
+        form = parser.forms.get("order-request-form")
+        self.assertIsNotNone(form)
+
+        fields = form["fields"]
+        expected_fields = {
+            "customer_name",
+            "customer_email",
+            "category",
+            "product_name",
+            "player_age",
+            "budget_eur",
+            "details",
+            "pickup_notes",
+            "consent",
+        }
+        self.assertTrue(expected_fields.issubset(fields.keys()))
+
+        self.assertEqual(fields["customer_name"].get("required"), None)
+        self.assertEqual(fields["customer_name"].get("minlength"), "2")
+        self.assertEqual(fields["customer_name"].get("maxlength"), "80")
+        self.assertEqual(fields["customer_email"].get("type"), "email")
+        self.assertEqual(fields["customer_email"].get("required"), None)
+        self.assertEqual(fields["category"].get("required"), None)
+        self.assertEqual(fields["product_name"].get("minlength"), "2")
+        self.assertEqual(fields["product_name"].get("maxlength"), "140")
+        self.assertEqual(fields["player_age"].get("min"), "0")
+        self.assertEqual(fields["player_age"].get("max"), "120")
+        self.assertEqual(fields["budget_eur"].get("min"), "1")
+        self.assertEqual(fields["budget_eur"].get("step"), "0.01")
+        self.assertEqual(fields["details"].get("minlength"), "20")
+        self.assertEqual(fields["details"].get("maxlength"), "1000")
+        self.assertEqual(fields["pickup_notes"].get("maxlength"), "220")
+        self.assertEqual(fields["consent"].get("type"), "checkbox")
+        self.assertEqual(fields["consent"].get("required"), None)
+
+    def test_order_request_script_validates_and_submits_to_supabase(self):
+        script = read_page("assets/js/order-request.js")
+
+        self.assertIn("function validateOrderRequest(values)", script)
+        self.assertIn("allowedCategories", script)
+        self.assertIn("setCustomValidity", script)
+        self.assertIn("reportValidity", script)
+        self.assertIn("/rest/v1/order_requests", script)
+        self.assertIn('method: "POST"', script)
+        self.assertIn('Prefer: "return=minimal"', script)
+        self.assertIn("window.BLOrderRequest", script)
+
+    def test_order_requests_schema_and_policies_exist(self):
+        schema = read_page("supabase/schema.sql")
+
+        self.assertIn("create table if not exists public.order_requests", schema)
+        self.assertIn("customer_email text not null", schema)
+        self.assertIn("char_length(trim(customer_name)) between 2 and 80", schema)
+        self.assertIn("category in ('tcg', 'jeux-societe', 'classiques-puzzle-echecs', 'idee-cadeau', 'autre')", schema)
+        self.assertIn("player_age integer check", schema)
+        self.assertIn("budget_eur numeric(10,2) check", schema)
+        self.assertIn("status text not null default 'new'", schema)
+        self.assertIn("alter table public.order_requests enable row level security", schema)
+        self.assertIn('create policy "order_requests_insert_public"', schema)
+        self.assertIn("status = 'new'", schema)
+        self.assertIn("and admin_notes is null", schema)
+        self.assertIn('create policy "order_requests_admin_manage"', schema)
 
     def test_homepage_points_to_order_flow(self):
         page = read_page("index.html")

@@ -185,6 +185,28 @@ alter table public.products
   add constraint products_age_range_check
   check (age_min is null or age_max is null or age_max >= age_min);
 
+create table if not exists public.order_requests (
+  id bigint primary key generated always as identity,
+  customer_name text not null
+    check (char_length(trim(customer_name)) between 2 and 80),
+  customer_email text not null
+    check (customer_email ~* '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'),
+  category text not null
+    check (category in ('tcg', 'jeux-societe', 'classiques-puzzle-echecs', 'idee-cadeau', 'autre')),
+  product_name text not null
+    check (char_length(trim(product_name)) between 2 and 140),
+  player_age integer check (player_age is null or (player_age >= 0 and player_age <= 120)),
+  budget_eur numeric(10,2) check (budget_eur is null or budget_eur > 0),
+  details text not null
+    check (char_length(trim(details)) between 20 and 1000),
+  pickup_notes text check (pickup_notes is null or char_length(trim(pickup_notes)) <= 220),
+  status text not null default 'new'
+    check (status in ('new', 'in_progress', 'validated', 'declined', 'completed')),
+  admin_notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.admin_threshold_rules (
   id bigint primary key generated always as identity,
   min_orders integer not null check (min_orders > 0),
@@ -282,6 +304,7 @@ create trigger sync_project_barometer_after_user_orders
 
 alter table public.project_barometer enable row level security;
 alter table public.products enable row level security;
+alter table public.order_requests enable row level security;
 alter table public.admin_threshold_rules enable row level security;
 alter table public.user_orders enable row level security;
 alter table public.user_barometer_templates enable row level security;
@@ -320,6 +343,34 @@ create policy "products_select_public"
 drop policy if exists "products_admin_write" on public.products;
 create policy "products_admin_write"
   on public.products for all
+  using (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+  );
+
+drop policy if exists "order_requests_insert_public" on public.order_requests;
+create policy "order_requests_insert_public"
+  on public.order_requests for insert
+  with check (
+    status = 'new'
+    and admin_notes is null
+  );
+
+drop policy if exists "order_requests_admin_manage" on public.order_requests;
+create policy "order_requests_admin_manage"
+  on public.order_requests for all
   using (
     exists (
       select 1
