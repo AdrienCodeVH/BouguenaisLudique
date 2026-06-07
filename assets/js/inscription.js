@@ -9,6 +9,12 @@
     feedback.hidden = !message;
   }
 
+  function getRedirectAfterAuth() {
+    const redirect = new URLSearchParams(window.location.search).get("redirect");
+    if (redirect === "catalogue") return "./catalogue.html";
+    return "../index.html";
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     setFeedback("");
@@ -81,7 +87,7 @@
           })
         );
         setFeedback("Compte créé. Redirection…", false);
-        window.location.href = "../index.html";
+        window.location.href = getRedirectAfterAuth();
         return;
       }
 

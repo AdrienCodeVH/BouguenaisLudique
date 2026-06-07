@@ -27,6 +27,12 @@
     feedback.hidden = !message;
   }
 
+  function getRedirectAfterAuth() {
+    const redirect = new URLSearchParams(window.location.search).get("redirect");
+    if (redirect === "catalogue") return "./catalogue.html";
+    return "../index.html";
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     setFeedback("");
@@ -67,7 +73,7 @@
         })
       );
       setFeedback("Connexion réussie. Redirection…", false);
-      window.location.href = "../index.html";
+      window.location.href = getRedirectAfterAuth();
     } catch (err) {
       setFeedback(toFriendlyLoginError(err), true);
     } finally {

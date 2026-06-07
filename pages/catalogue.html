@@ -64,8 +64,10 @@
           <h2>Parcours de commande proposé</h2>
           <div class="cards order-steps" aria-label="Parcours de commande">
             <article class="card order-step-card">
-              <span class="order-step-number">1</span>
-              <h3>Exprimer le besoin</h3>
+              <div class="order-step-heading">
+                <span class="order-step-number">1</span>
+                <h3>Exprimer le besoin</h3>
+              </div>
               <p>
                 Envoyez le jeu, l'univers ou le type de produit recherché : jeu familial,
                 expert, TCG, puzzle, échecs ou idée cadeau.
@@ -73,8 +75,10 @@
             </article>
 
             <article class="card order-step-card">
-              <span class="order-step-number">2</span>
-              <h3>Vérification</h3>
+              <div class="order-step-heading">
+                <span class="order-step-number">2</span>
+                <h3>Vérification</h3>
+              </div>
               <p>
                 Je confirme la disponibilité possible, le prix estimé, le délai et les
                 alternatives pertinentes si la référence exacte n'est pas adaptée.
@@ -82,8 +86,10 @@
             </article>
 
             <article class="card order-step-card">
-              <span class="order-step-number">3</span>
-              <h3>Validation</h3>
+              <div class="order-step-heading">
+                <span class="order-step-number">3</span>
+                <h3>Validation</h3>
+              </div>
               <p>
                 La commande est retenue uniquement après accord clair sur le produit, le prix
                 et les modalités de remise en main propre.
@@ -91,8 +97,10 @@
             </article>
 
             <article class="card order-step-card">
-              <span class="order-step-number">4</span>
-              <h3>Retrait local</h3>
+              <div class="order-step-heading">
+                <span class="order-step-number">4</span>
+                <h3>Retrait local</h3>
+              </div>
               <p>
                 Le retrait se fait à Bouguenais, sur un créneau convenu ensemble. La commande
                 contribue ensuite au baromètre du projet.
@@ -102,8 +110,9 @@
 
           <div class="order-cta">
             <p>
-              Pour lancer une demande, remplissez le formulaire ci-dessous. Il ne valide pas encore
-              une commande ferme : il sert à vérifier la disponibilité, le prix et le retrait avec vous.
+              Les demandes de commande sont réservées aux membres inscrits. La demande ne valide
+              pas encore une commande ferme : elle sert à vérifier la disponibilité, le prix et
+              le retrait avec vous.
             </p>
           </div>
         </div>
@@ -111,8 +120,20 @@
 
       <section class="section" id="demande-commande" aria-labelledby="order-request-title">
         <div class="container container--narrow">
-          <h2 id="order-request-title" class="auth-section-title">Faire une demande de commande</h2>
-          <form id="order-request-form" class="auth-form order-request-form" novalidate>
+          <h2 id="order-request-title" class="auth-section-title">Demande réservée aux membres</h2>
+          <div id="order-request-auth-required" class="auth-required-card" role="status">
+            <h3>Inscription obligatoire</h3>
+            <p>
+              Créez un compte ou connectez-vous pour accéder au formulaire. Cela permet de garder
+              un suivi propre, d'éviter les demandes anonymes et de vous recontacter plus facilement.
+            </p>
+            <div class="auth-required-actions">
+              <a class="btn" href="./inscription.html?redirect=catalogue">Créer mon compte</a>
+              <a class="btn btn-secondary" href="./connexion.html?redirect=catalogue">J'ai déjà un compte</a>
+            </div>
+          </div>
+
+          <form id="order-request-form" class="auth-form order-request-form" novalidate hidden>
             <div class="form-field">
               <label for="order-request-name">Nom ou pseudo</label>
               <input
@@ -127,7 +148,7 @@
             </div>
 
             <div class="form-field">
-              <label for="order-request-email">E-mail</label>
+              <label for="order-request-email">E-mail du compte</label>
               <input
                 id="order-request-email"
                 name="customer_email"
@@ -136,6 +157,7 @@
                 maxlength="160"
                 required
               />
+              <span class="form-hint">Cette adresse est reprise depuis votre session connectée.</span>
             </div>
 
             <div class="form-field">
@@ -222,8 +244,6 @@
             <button type="submit" class="btn auth-form-submit">Envoyer la demande</button>
             <p id="order-request-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
           </form>
-        </div>
-      </section>
         </div>
       </section>
     </main>
