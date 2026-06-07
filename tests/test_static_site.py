@@ -61,8 +61,9 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("Le catalogue ouvrira avec les premières commandes", page)
         self.assertIn("Pourquoi pas encore de catalogue ouvert ?", page)
         self.assertIn("Parcours de commande proposé", page)
-        self.assertIn("Faire une demande de commande", page)
-        self.assertIn("Compte obligatoire avant la demande", page)
+        self.assertIn("Demande réservée aux membres", page)
+        self.assertIn("Inscription obligatoire", page)
+        self.assertIn("d'éviter les demandes anonymes", page)
         self.assertIn('href="./inscription.html?redirect=catalogue"', page)
         self.assertIn('href="./connexion.html?redirect=catalogue"', page)
 
