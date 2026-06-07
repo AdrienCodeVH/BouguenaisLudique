@@ -6,7 +6,7 @@ Site vitrine/catalogue de jeux avec authentification Supabase et espace d'admini
 
 Le projet propose :
 - une page d'accueil orientée storytelling avec navigation par slides ;
-- un catalogue avec 3 univers (TCG, jeux de societe, classiques/puzzle/echecs) ;
+- une page de demande de commande avant ouverture d'un catalogue complet ;
 - des pages de connexion/inscription connectees a Supabase Auth ;
 - un espace admin pour gerer les roles, le barometre de commandes et les produits.
 
@@ -14,13 +14,17 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
 
 ## Fonctionnalites
 
-- Navigation globale : accueil, catalogue, contact, connexion, inscription.
+- Navigation globale : accueil, demande de commande, contact, connexion, inscription.
 - Authentification email/mot de passe via Supabase REST (`/auth/v1`).
 - Stockage de session cote navigateur (`sessionStorage`).
 - Affichage conditionnel dans la navbar :
   - visiteur : liens Connexion / S'inscrire ;
   - utilisateur connecte : Mon espace / Deconnexion ;
   - admin : lien Admin supplementaire.
+- Parcours de commande initial :
+  - le visiteur exprime son besoin par contact ;
+  - la disponibilite, le prix et le retrait sont confirmes manuellement ;
+  - le catalogue public complet sera ouvert quand les premieres commandes auront permis de prioriser l'offre.
 - Barometre du projet :
   - valeur statique par defaut dans `index.html` ;
   - surcharge dynamique depuis la table `project_barometer` si Supabase est configure.
@@ -124,5 +128,5 @@ Le schema active la RLS et applique des policies pour :
 
 - Pas de pipeline de tests automatise.
 - Front en JavaScript vanilla (pas de type checking ni build step).
-- Les pages catalogue sont principalement statiques ; la table `products` est administree mais non encore branchee sur l'affichage catalogue public.
+- Le catalogue public complet n'est pas encore ouvert : le projet privilegie d'abord les demandes de commande manuelles.
 - Pas de formulaire de contact en ligne (contact par email).
