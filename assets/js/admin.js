@@ -186,7 +186,7 @@
     if (!requestsBody) return;
     if (!rows.length) {
       requestsBody.innerHTML =
-        '<tr><td colspan="7" class="admin-empty">Aucune demande de commande pour le moment.</td></tr>';
+        '<tr><td colspan="8" class="admin-empty">Aucune demande de commande pour le moment.</td></tr>';
       return;
     }
 
@@ -203,6 +203,9 @@ Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
         const mailHref = `mailto:${encodeURIComponent(row.customer_email || "")}?subject=${mailSubject}&body=${mailBody}`;
         const playerAge = Number.isFinite(Number(row.player_age)) ? `${Number(row.player_age)} ans` : "-";
         const budget = Number.isFinite(Number(row.budget_eur)) ? `${Number(row.budget_eur).toFixed(2)} EUR` : "-";
+        const confirmedOrderCount = Number.isFinite(Number(row.confirmed_order_count))
+          ? Math.max(0, Number(row.confirmed_order_count))
+          : 0;
         return `
           <tr data-order-request-row="${row.id}">
             <td>${formatDateTime(row.created_at)}</td>
@@ -223,6 +226,17 @@ Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
               <select class="admin-request-status" data-order-request-status data-order-request-id="${row.id}">
                 ${renderRequestStatusOptions(row.status || "new")}
               </select>
+            </td>
+            <td>
+              <input
+                class="admin-request-count"
+                type="number"
+                min="0"
+                step="1"
+                value="${confirmedOrderCount}"
+                data-order-request-count
+                data-order-request-id="${row.id}"
+              />
             </td>
             <td class="admin-request-notes">
               <textarea maxlength="1000" data-order-request-notes data-order-request-id="${row.id}">${escapeHtml(row.admin_notes || "")}</textarea>
@@ -433,7 +447,7 @@ Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
 
   async function loadOrderRequests() {
     const res = await apiFetch(
-      "/rest/v1/order_requests?select=id,customer_name,customer_email,category,product_name,player_age,budget_eur,details,pickup_notes,status,admin_notes,created_at,updated_at&order=created_at.desc"
+      "/rest/v1/order_requests?select=id,customer_name,customer_email,category,product_name,player_age,budget_eur,details,pickup_notes,status,confirmed_order_count,admin_notes,created_at,updated_at&order=created_at.desc"
     );
     const rows = await res.json();
     renderOrderRequests(rows);
@@ -771,11 +785,17 @@ Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
 
     const statusField = requestsBody.querySelector(`[data-order-request-status][data-order-request-id="${requestId}"]`);
     const notesField = requestsBody.querySelector(`[data-order-request-notes][data-order-request-id="${requestId}"]`);
+    const countField = requestsBody.querySelector(`[data-order-request-count][data-order-request-id="${requestId}"]`);
     const status = statusField instanceof HTMLSelectElement ? statusField.value : "new";
     const adminNotes = notesField instanceof HTMLTextAreaElement ? notesField.value.trim() : "";
+    const confirmedOrderCount = countField instanceof HTMLInputElement ? Number(countField.value) : 0;
 
     if (!requestStatuses.some(([value]) => value === status)) {
       setFeedback(requestsFeedback, "Statut de demande invalide.", true);
+      return;
+    }
+    if (!Number.isInteger(confirmedOrderCount) || confirmedOrderCount < 0) {
+      setFeedback(requestsFeedback, "Le nombre de commandes comptées doit être un entier positif ou nul.", true);
       return;
     }
 
@@ -785,6 +805,7 @@ Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
         headers: { Prefer: "return=minimal" },
         body: JSON.stringify({
           status,
+          confirmed_order_count: confirmedOrderCount,
           admin_notes: adminNotes || null,
           updated_at: new Date().toISOString(),
         }),

@@ -202,10 +202,21 @@ create table if not exists public.order_requests (
   pickup_notes text check (pickup_notes is null or char_length(trim(pickup_notes)) <= 220),
   status text not null default 'new'
     check (status in ('new', 'in_progress', 'validated', 'declined', 'completed')),
+  confirmed_order_count integer not null default 0 check (confirmed_order_count >= 0),
   admin_notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.order_requests
+  add column if not exists confirmed_order_count integer not null default 0;
+
+alter table public.order_requests
+  drop constraint if exists order_requests_confirmed_order_count_check;
+
+alter table public.order_requests
+  add constraint order_requests_confirmed_order_count_check
+  check (confirmed_order_count >= 0);
 
 create table if not exists public.admin_threshold_rules (
   id bigint primary key generated always as identity,
@@ -283,9 +294,15 @@ as $$
 declare
   v_total integer;
 begin
-  select coalesce(sum(order_count), 0)::integer
-  into v_total
-  from public.user_orders;
+  select (
+    coalesce((select sum(order_count) from public.user_orders), 0)
+    + coalesce((
+      select sum(confirmed_order_count)
+      from public.order_requests
+      where status in ('validated', 'completed')
+    ), 0)
+  )::integer
+  into v_total;
 
   update public.project_barometer
   set current_orders = v_total,
@@ -299,6 +316,12 @@ $$;
 drop trigger if exists sync_project_barometer_after_user_orders on public.user_orders;
 create trigger sync_project_barometer_after_user_orders
   after insert or update or delete on public.user_orders
+  for each statement
+  execute function public.sync_project_barometer_from_user_orders();
+
+drop trigger if exists sync_project_barometer_after_order_requests on public.order_requests;
+create trigger sync_project_barometer_after_order_requests
+  after insert or update or delete on public.order_requests
   for each statement
   execute function public.sync_project_barometer_from_user_orders();
 
@@ -365,6 +388,7 @@ create policy "order_requests_insert_public"
   on public.order_requests for insert
   with check (
     status = 'new'
+    and confirmed_order_count = 0
     and admin_notes is null
   );
 
