@@ -963,14 +963,15 @@ a {
 }
 
 .order-step-card {
-  position: relative;
-  padding-top: 3.15rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  align-items: center;
+  column-gap: 0.65rem;
+  row-gap: 0.8rem;
 }
 
 .order-step-number {
-  position: absolute;
-  top: 1rem;
-  left: 1.15rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -985,6 +986,14 @@ a {
     color-mix(in srgb, var(--blue-soft) 42%, #fff 58%)
   );
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
+}
+
+.order-step-card h3 {
+  margin: 0;
+}
+
+.order-step-card p {
+  grid-column: 1 / -1;
 }
 
 .order-cta {
