@@ -384,10 +384,13 @@ create policy "products_admin_write"
   );
 
 drop policy if exists "order_requests_insert_public" on public.order_requests;
-create policy "order_requests_insert_public"
+drop policy if exists "order_requests_insert_authenticated" on public.order_requests;
+create policy "order_requests_insert_authenticated"
   on public.order_requests for insert
+  to authenticated
   with check (
-    status = 'new'
+    auth.uid() is not null
+    and status = 'new'
     and confirmed_order_count = 0
     and admin_notes is null
   );

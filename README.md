@@ -22,7 +22,8 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
   - utilisateur connecte : Mon espace / Deconnexion ;
   - admin : lien Admin supplementaire.
 - Parcours de commande initial :
-  - le visiteur exprime son besoin via le formulaire de demande ;
+  - le visiteur crée un compte ou se connecte avant d'accéder au formulaire de demande ;
+  - l'utilisateur connecté exprime son besoin via le formulaire de demande ;
   - la demande est stockee dans `order_requests` si Supabase est configure ;
   - la disponibilite, le prix et le retrait sont confirmes manuellement ;
   - le catalogue public complet sera ouvert quand les premieres commandes auront permis de prioriser l'offre.
@@ -126,11 +127,12 @@ Le SQL fournit dans `supabase/schema.sql` contient un bloc de bootstrap admin :
 - `public.products`
   - `name`, `category`, `price_eur`, `is_active`, timestamps
 - `public.order_requests`
-  - demandeur, e-mail, univers, produit recherche, budget, details, statut
+  - demandeur connecte, e-mail, univers, produit recherche, budget, details, statut
 
 Le schema active la RLS et applique des policies pour :
 - lecture publique du barometre et des produits ;
-- ecriture reservee aux admins ;
+- creation des demandes reservee aux utilisateurs authentifies ;
+- ecriture d'administration reservee aux admins ;
 - gestion fine des droits sur `profiles`.
 
 ## Notes securite

@@ -1012,6 +1012,35 @@ a {
   margin-top: 0.6rem;
 }
 
+.auth-required-card {
+  padding: 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--blue) 16%, transparent);
+  border-radius: var(--border-radius);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, #ffffff 84%, var(--blue-soft) 16%),
+    color-mix(in srgb, #ffffff 88%, var(--yellow-soft) 12%)
+  );
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--blue) 10%, transparent);
+  text-align: center;
+}
+
+.auth-required-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.55rem;
+}
+
+.auth-required-card p {
+  margin-bottom: 1rem;
+}
+
+.auth-required-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
 .order-request-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

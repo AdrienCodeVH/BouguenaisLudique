@@ -102,8 +102,9 @@
 
           <div class="order-cta">
             <p>
-              Pour lancer une demande, remplissez le formulaire ci-dessous. Il ne valide pas encore
-              une commande ferme : il sert à vérifier la disponibilité, le prix et le retrait avec vous.
+              Pour lancer une demande, créez d'abord un compte ou connectez-vous. La demande
+              ne valide pas encore une commande ferme : elle sert à vérifier la disponibilité,
+              le prix et le retrait avec vous.
             </p>
           </div>
         </div>
@@ -112,7 +113,19 @@
       <section class="section" id="demande-commande" aria-labelledby="order-request-title">
         <div class="container container--narrow">
           <h2 id="order-request-title" class="auth-section-title">Faire une demande de commande</h2>
-          <form id="order-request-form" class="auth-form order-request-form" novalidate>
+          <div id="order-request-auth-required" class="auth-required-card" role="status">
+            <h3>Compte obligatoire avant la demande</h3>
+            <p>
+              L'inscription permet de garder un suivi propre des demandes, d'éviter les formulaires
+              anonymes et de vous recontacter plus facilement pour confirmer le prix, le délai et le retrait.
+            </p>
+            <div class="auth-required-actions">
+              <a class="btn" href="./inscription.html?redirect=catalogue">Créer mon compte</a>
+              <a class="btn btn-secondary" href="./connexion.html?redirect=catalogue">J'ai déjà un compte</a>
+            </div>
+          </div>
+
+          <form id="order-request-form" class="auth-form order-request-form" novalidate hidden>
             <div class="form-field">
               <label for="order-request-name">Nom ou pseudo</label>
               <input
@@ -127,7 +140,7 @@
             </div>
 
             <div class="form-field">
-              <label for="order-request-email">E-mail</label>
+              <label for="order-request-email">E-mail du compte</label>
               <input
                 id="order-request-email"
                 name="customer_email"
@@ -136,6 +149,7 @@
                 maxlength="160"
                 required
               />
+              <span class="form-hint">Cette adresse est reprise depuis votre session connectée.</span>
             </div>
 
             <div class="form-field">
@@ -222,8 +236,6 @@
             <button type="submit" class="btn auth-form-submit">Envoyer la demande</button>
             <p id="order-request-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
           </form>
-        </div>
-      </section>
         </div>
       </section>
     </main>

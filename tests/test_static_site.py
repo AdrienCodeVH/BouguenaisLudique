@@ -62,10 +62,14 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("Pourquoi pas encore de catalogue ouvert ?", page)
         self.assertIn("Parcours de commande proposé", page)
         self.assertIn("Faire une demande de commande", page)
+        self.assertIn("Compte obligatoire avant la demande", page)
+        self.assertIn('href="./inscription.html?redirect=catalogue"', page)
+        self.assertIn('href="./connexion.html?redirect=catalogue"', page)
 
         self.assertNotIn("Produits disponibles", page)
         self.assertNotIn("catalogue-products-status", page)
         self.assertIn('id="order-request-form"', page)
+        self.assertIn('id="order-request-auth-required"', page)
         self.assertIn('src="../assets/js/order-request.js"', page)
 
     def test_order_request_form_fields_have_html_validation(self):
@@ -114,8 +118,11 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("allowedCategories", script)
         self.assertIn("setCustomValidity", script)
         self.assertIn("reportValidity", script)
+        self.assertIn("getStoredSession", script)
+        self.assertIn("Connectez-vous avant d'envoyer une demande", script)
         self.assertIn("/rest/v1/order_requests", script)
         self.assertIn('method: "POST"', script)
+        self.assertIn("Authorization: `Bearer ${accessToken}`", script)
         self.assertIn('Prefer: "return=minimal"', script)
         self.assertIn("window.BLOrderRequest", script)
 
@@ -130,7 +137,9 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("budget_eur numeric(10,2) check", schema)
         self.assertIn("status text not null default 'new'", schema)
         self.assertIn("alter table public.order_requests enable row level security", schema)
-        self.assertIn('create policy "order_requests_insert_public"', schema)
+        self.assertIn('create policy "order_requests_insert_authenticated"', schema)
+        self.assertIn("to authenticated", schema)
+        self.assertIn("auth.uid() is not null", schema)
         self.assertIn("status = 'new'", schema)
         self.assertIn("and admin_notes is null", schema)
         self.assertIn('create policy "order_requests_admin_manage"', schema)

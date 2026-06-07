@@ -1,6 +1,7 @@
 (function () {
   const form = document.getElementById("order-request-form");
   const feedback = document.getElementById("order-request-feedback");
+  const authRequired = document.getElementById("order-request-auth-required");
   if (!form || !feedback || !window.BLAuth) return;
 
   const allowedCategories = [
@@ -24,6 +25,35 @@
     if (!trimmed) return null;
     const parsed = Number(trimmed.replace(",", "."));
     return Number.isFinite(parsed) ? parsed : NaN;
+  }
+
+  function getCurrentSession() {
+    return window.BLAuthUi?.getStoredSession?.() || null;
+  }
+
+  function getAccessToken() {
+    const session = getCurrentSession();
+    return session && session.access_token ? session.access_token : "";
+  }
+
+  function getAccountEmail(accessToken) {
+    const payload = window.BLAuthUi?.parseJwtPayload?.(accessToken);
+    return trimValue(payload && payload.email).toLowerCase();
+  }
+
+  function updateAuthenticatedView() {
+    const accessToken = getAccessToken();
+    const isLoggedIn = Boolean(accessToken);
+    form.hidden = !isLoggedIn;
+    if (authRequired) authRequired.hidden = isLoggedIn;
+
+    if (!isLoggedIn) return;
+
+    const accountEmail = getAccountEmail(accessToken);
+    if (accountEmail && form.customer_email) {
+      form.customer_email.value = accountEmail;
+      form.customer_email.readOnly = true;
+    }
   }
 
   function collectOrderRequestValues() {
@@ -120,17 +150,20 @@
     };
   }
 
-  async function submitOrderRequest(values) {
+  async function submitOrderRequest(values, accessToken) {
     const cfg = window.BLAuth.getSupabaseConfig();
     if (!cfg || !cfg.isConfigured) {
       throw new Error("Configuration Supabase manquante. Écrivez directement à bouguenaisludique@gmail.com.");
+    }
+    if (!accessToken) {
+      throw new Error("Connectez-vous avant d'envoyer une demande de commande.");
     }
 
     const res = await fetch(`${cfg.url}/rest/v1/order_requests`, {
       method: "POST",
       headers: {
         apikey: cfg.key,
-        Authorization: `Bearer ${cfg.key}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         Prefer: "return=minimal",
       },
@@ -139,13 +172,25 @@
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("Votre session ne permet pas d'envoyer cette demande. Reconnectez-vous puis réessayez.");
+      }
       throw new Error(data.message || data.error || "La demande n'a pas pu être envoyée.");
     }
   }
 
+  updateAuthenticatedView();
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     setFeedback("");
+
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      updateAuthenticatedView();
+      setFeedback("Connectez-vous avant d'envoyer une demande de commande.", true);
+      return;
+    }
 
     const values = collectOrderRequestValues();
     const errors = validateOrderRequest(values);
@@ -160,8 +205,9 @@
     if (submitButton) submitButton.disabled = true;
 
     try {
-      await submitOrderRequest(values);
+      await submitOrderRequest(values, accessToken);
       form.reset();
+      updateAuthenticatedView();
       setFeedback("Demande envoyée. Je reviens vers vous par e-mail pour confirmer les possibilités.", false);
     } catch (err) {
       setFeedback(err && err.message ? err.message : "La demande n'a pas pu être envoyée.", true);
