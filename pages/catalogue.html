@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Catalogue - Bouguenais Ludique</title>
+    <title>Commander - Bouguenais Ludique</title>
     <meta
       name="description"
-      content="Découvrez une sélection de jeux de société proposée par Bouguenais Ludique."
+      content="Demandez un jeu ou un univers ludique avant l'ouverture du catalogue Bouguenais Ludique."
     />
     <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
     <link rel="stylesheet" href="../assets/css/style.css" />
@@ -21,7 +21,7 @@
 
         <nav class="main-nav">
           <a href="../index.html">Accueil</a>
-          <a href="./catalogue.html">Catalogue</a>
+          <a href="./catalogue.html">Commander</a>
           <a href="./contact.html">Contact</a>
           <a class="main-nav-btn main-nav-btn--ghost" href="./connexion.html"
             >Connexion</a
@@ -36,42 +36,194 @@
     <main>
       <section class="hero">
         <div class="container">
-          <p class="eyebrow">Catalogue</p>
-          <h1>Une sélection de jeux à découvrir</h1>
+          <p class="eyebrow">Commande d'abord</p>
+          <h1>Le catalogue ouvrira avec les premières commandes</h1>
           <p class="hero-text">
-            Parcours rapidement les univers qui t'intéressent et trouve le bon jeu au bon prix.
+            Avant d'afficher un catalogue complet, Bouguenais Ludique fonctionne sur demande :
+            vous indiquez ce que vous cherchez, je vérifie les possibilités, puis la commande est
+            confirmée ensemble.
           </p>
         </div>
       </section>
 
       <section class="section">
         <div class="container">
-          <div class="cards">
-            <a class="card card-link" href="#" data-coming-soon>
-              <h3>Jeux de cartes à collectionner</h3>
-              <p>Boosters, decks et accessoires pour collectionneurs et compétiteurs.</p>
-            </a>
-
-            <a class="card card-link" href="#" data-coming-soon>
-              <h3>Jeux de société</h3>
-              <p>Des incontournables famille aux titres experts pour soirées réussies.</p>
-            </a>
-
-            <a class="card card-link" href="#" data-coming-soon>
-              <h3>Jeux classiques, puzzle et échecs</h3>
-              <p>Les valeurs sûres intemporelles pour jouer, apprendre et se challenger.</p>
-            </a>
+          <div class="order-notice">
+            <h2>Pourquoi pas encore de catalogue ouvert ?</h2>
+            <p>
+              L'objectif est de construire l'offre à partir des vraies demandes, sans afficher
+              une sélection qui ne serait pas encore disponible. Les premiers retours permettent
+              de prioriser les univers, les références et les quantités utiles.
+            </p>
           </div>
         </div>
       </section>
 
       <section class="section section-alt">
         <div class="container">
-          <h2>Produits disponibles</h2>
-          <p id="catalogue-products-status" class="admin-empty">
-            Chargement des produits...
-          </p>
-          <div id="catalogue-products-grid" class="cards" aria-live="polite"></div>
+          <h2>Parcours de commande proposé</h2>
+          <div class="cards order-steps" aria-label="Parcours de commande">
+            <article class="card order-step-card">
+              <span class="order-step-number">1</span>
+              <h3>Exprimer le besoin</h3>
+              <p>
+                Envoyez le jeu, l'univers ou le type de produit recherché : jeu familial,
+                expert, TCG, puzzle, échecs ou idée cadeau.
+              </p>
+            </article>
+
+            <article class="card order-step-card">
+              <span class="order-step-number">2</span>
+              <h3>Vérification</h3>
+              <p>
+                Je confirme la disponibilité possible, le prix estimé, le délai et les
+                alternatives pertinentes si la référence exacte n'est pas adaptée.
+              </p>
+            </article>
+
+            <article class="card order-step-card">
+              <span class="order-step-number">3</span>
+              <h3>Validation</h3>
+              <p>
+                La commande est retenue uniquement après accord clair sur le produit, le prix
+                et les modalités de remise en main propre.
+              </p>
+            </article>
+
+            <article class="card order-step-card">
+              <span class="order-step-number">4</span>
+              <h3>Retrait local</h3>
+              <p>
+                Le retrait se fait à Bouguenais, sur un créneau convenu ensemble. La commande
+                contribue ensuite au baromètre du projet.
+              </p>
+            </article>
+          </div>
+
+          <div class="order-cta">
+            <p>
+              Pour lancer une demande, remplissez le formulaire ci-dessous. Il ne valide pas encore
+              une commande ferme : il sert à vérifier la disponibilité, le prix et le retrait avec vous.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="demande-commande" aria-labelledby="order-request-title">
+        <div class="container container--narrow">
+          <h2 id="order-request-title" class="auth-section-title">Faire une demande de commande</h2>
+          <form id="order-request-form" class="auth-form order-request-form" novalidate>
+            <div class="form-field">
+              <label for="order-request-name">Nom ou pseudo</label>
+              <input
+                id="order-request-name"
+                name="customer_name"
+                type="text"
+                autocomplete="name"
+                minlength="2"
+                maxlength="80"
+                required
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-email">E-mail</label>
+              <input
+                id="order-request-email"
+                name="customer_email"
+                type="email"
+                autocomplete="email"
+                maxlength="160"
+                required
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-category">Univers recherché</label>
+              <select id="order-request-category" name="category" required>
+                <option value="" selected disabled>Choisir un univers</option>
+                <option value="tcg">Jeux de cartes à collectionner</option>
+                <option value="jeux-societe">Jeux de société</option>
+                <option value="classiques-puzzle-echecs">Classiques, puzzle et échecs</option>
+                <option value="idee-cadeau">Idée cadeau / conseil</option>
+                <option value="autre">Autre demande</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-product">Jeu ou produit recherché</label>
+              <input
+                id="order-request-product"
+                name="product_name"
+                type="text"
+                minlength="2"
+                maxlength="140"
+                placeholder="Ex. Sky Team, booster Pokémon, puzzle 1000 pièces..."
+                required
+              />
+            </div>
+
+            <div class="order-request-grid">
+              <div class="form-field">
+                <label for="order-request-player-age">Âge des joueurs</label>
+                <input
+                  id="order-request-player-age"
+                  name="player_age"
+                  type="number"
+                  min="0"
+                  max="120"
+                  inputmode="numeric"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="order-request-budget">Budget approximatif (€)</label>
+                <input
+                  id="order-request-budget"
+                  name="budget_eur"
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  inputmode="decimal"
+                />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-details">Détails de la demande</label>
+              <textarea
+                id="order-request-details"
+                name="details"
+                rows="5"
+                minlength="20"
+                maxlength="1000"
+                placeholder="Précisez le contexte : pour qui, occasion, délai souhaité, préférence de gamme, alternative acceptée..."
+                required
+              ></textarea>
+              <span class="form-hint">Minimum 20 caractères pour pouvoir répondre utilement.</span>
+            </div>
+
+            <div class="form-field">
+              <label for="order-request-pickup">Contraintes de retrait</label>
+              <input
+                id="order-request-pickup"
+                name="pickup_notes"
+                type="text"
+                maxlength="220"
+                placeholder="Ex. soir en semaine, samedi matin, pas d'urgence..."
+              />
+            </div>
+
+            <label class="form-check">
+              <input id="order-request-consent" name="consent" type="checkbox" required />
+              <span>J'accepte d'être recontacté par e-mail au sujet de cette demande.</span>
+            </label>
+
+            <button type="submit" class="btn auth-form-submit">Envoyer la demande</button>
+            <p id="order-request-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
+          </form>
+        </div>
+      </section>
         </div>
       </section>
     </main>
@@ -85,6 +237,7 @@
     <script src="../assets/js/auth-config.js"></script>
     <script src="../assets/js/auth-api.js"></script>
     <script src="../assets/js/auth-ui.js"></script>
+    <script src="../assets/js/order-request.js"></script>
     <script src="../assets/js/script.js"></script>
   </body>
 </html>

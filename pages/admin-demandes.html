@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin comptes - Bouguenais Ludique</title>
-    <meta name="description" content="Gestion des comptes administrateur Bouguenais Ludique." />
+    <title>Admin demandes - Bouguenais Ludique</title>
+    <meta name="description" content="Suivi des demandes de commande Bouguenais Ludique." />
     <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
     <link rel="stylesheet" href="../assets/css/style.css" />
     <style>
@@ -35,6 +35,28 @@
       .admin-empty {
         color: rgba(30, 30, 30, 0.7);
       }
+      .admin-media-link {
+        color: #1e40af;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .admin-request-details {
+        min-width: 220px;
+      }
+      .admin-request-notes {
+        min-width: 220px;
+      }
+      .admin-request-notes textarea {
+        width: 100%;
+        min-height: 92px;
+        resize: vertical;
+      }
+      .admin-request-status {
+        min-width: 150px;
+      }
+      .admin-request-count {
+        width: 6.5rem;
+      }
     </style>
   </head>
   <body class="content-page">
@@ -56,30 +78,36 @@
       <section class="hero">
         <div class="container">
           <p class="eyebrow">Administration</p>
-          <h1>Comptes utilisateurs</h1>
-          <p class="hero-text">Mise à jour des rôles et accès.</p>
+          <h1>Demandes de commande</h1>
+          <p class="hero-text">
+            Suis les demandes reçues, qualifie leur statut et conserve les notes de traitement.
+          </p>
         </div>
       </section>
 
       <section class="section section-alt">
         <div class="container admin-layout">
           <p id="admin-status" class="form-feedback" role="status" aria-live="polite" hidden></p>
-          <article class="admin-card" id="admin-accounts-section" hidden>
-            <h2>Gestion des comptes</h2>
-            <p class="admin-empty">Mets à jour les rôles utilisateur (`client`, `employee`, `admin`).</p>
+          <article class="admin-card" id="admin-requests-section" hidden>
+            <h2>Suivi des demandes</h2>
+            <p id="admin-requests-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
             <div class="admin-table-wrap">
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Utilisateur</th>
-                    <th>Nom affiché</th>
-                    <th>Rôle</th>
+                    <th>Date</th>
+                    <th>Demandeur</th>
+                    <th>Demande</th>
+                    <th>Détails</th>
+                    <th>Statut</th>
+                    <th>Commandes comptées</th>
+                    <th>Notes admin</th>
                     <th>Action</th>
                   </tr>
                 </thead>
-                <tbody id="admin-accounts-body">
+                <tbody id="admin-requests-body">
                   <tr>
-                    <td colspan="4" class="admin-empty">Chargement des comptes…</td>
+                    <td colspan="8" class="admin-empty">Chargement des demandes…</td>
                   </tr>
                 </tbody>
               </table>
