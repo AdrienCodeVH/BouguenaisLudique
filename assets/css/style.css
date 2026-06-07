@@ -966,7 +966,7 @@ a {
   display: grid;
   grid-template-columns: auto 1fr;
   align-content: start;
-  align-items: center;
+  align-items: start;
   column-gap: 0.65rem;
   row-gap: 0.8rem;
 }
@@ -975,6 +975,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-top: 0.05rem;
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
