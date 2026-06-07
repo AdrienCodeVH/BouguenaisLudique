@@ -31,10 +31,21 @@
   const productsFeedback = document.getElementById("admin-products-feedback");
   const productsBody = document.getElementById("admin-products-body");
   const productCategorySelect = document.getElementById("product-category");
+  const requestsSection = document.getElementById("admin-requests-section");
+  const requestsBody = document.getElementById("admin-requests-body");
+  const requestsFeedback = document.getElementById("admin-requests-feedback");
   const hasAccountsModule = Boolean(accountsSection && accountsBody);
   const hasBarometerModule = Boolean(barometerSection && barometerForm);
   const hasProductsModule = Boolean(productsSection && productsBody && productForm);
+  const hasRequestsModule = Boolean(requestsSection && requestsBody);
   const defaultProductCategories = ["tcg", "jeux-societe", "classiques-puzzle-echecs"];
+  const requestStatuses = [
+    ["new", "Nouvelle"],
+    ["in_progress", "En cours"],
+    ["validated", "Validée"],
+    ["declined", "Refusée"],
+    ["completed", "Terminée"],
+  ];
   let accessToken = "";
   let currentUserId = "";
   let currentOrdersValue = 0;
@@ -52,6 +63,31 @@
     node.textContent = message;
     node.classList.toggle("form-feedback--error", Boolean(isError));
     node.hidden = !message;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function formatDateTime(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleString("fr-FR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+  }
+
+  function renderRequestStatusOptions(currentStatus) {
+    return requestStatuses
+      .map(([value, label]) => `<option value="${value}"${value === currentStatus ? " selected" : ""}>${label}</option>`)
+      .join("");
   }
 
   function getSupabaseConfig() {
@@ -140,6 +176,60 @@
             <td>${ageLabel}</td>
             <td>${mediaLinks.join(" · ") || "-"}</td>
             <td><button class="btn" type="button" data-product-delete data-product-id="${row.id}">Supprimer</button></td>
+          </tr>
+        `;
+      })
+      .join("");
+  }
+
+  function renderOrderRequests(rows) {
+    if (!requestsBody) return;
+    if (!rows.length) {
+      requestsBody.innerHTML =
+        '<tr><td colspan="7" class="admin-empty">Aucune demande de commande pour le moment.</td></tr>';
+      return;
+    }
+
+    requestsBody.innerHTML = rows
+      .map((row) => {
+        const mailSubject = encodeURIComponent(`Demande Bouguenais Ludique - ${row.product_name || "commande"}`);
+        const mailBody = encodeURIComponent(
+          `Bonjour ${row.customer_name || ""},
+
+Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
+
+`
+        );
+        const mailHref = `mailto:${encodeURIComponent(row.customer_email || "")}?subject=${mailSubject}&body=${mailBody}`;
+        const playerAge = Number.isFinite(Number(row.player_age)) ? `${Number(row.player_age)} ans` : "-";
+        const budget = Number.isFinite(Number(row.budget_eur)) ? `${Number(row.budget_eur).toFixed(2)} EUR` : "-";
+        return `
+          <tr data-order-request-row="${row.id}">
+            <td>${formatDateTime(row.created_at)}</td>
+            <td>
+              <strong>${escapeHtml(row.customer_name)}</strong><br />
+              <a class="admin-media-link" href="${mailHref}">${escapeHtml(row.customer_email)}</a>
+            </td>
+            <td>
+              <strong>${escapeHtml(row.product_name)}</strong><br />
+              <span>${escapeHtml(row.category)}</span><br />
+              <small>Âge : ${escapeHtml(playerAge)} · Budget : ${escapeHtml(budget)}</small>
+            </td>
+            <td class="admin-request-details">
+              ${escapeHtml(row.details)}
+              ${row.pickup_notes ? `<br /><small>Retrait : ${escapeHtml(row.pickup_notes)}</small>` : ""}
+            </td>
+            <td>
+              <select class="admin-request-status" data-order-request-status data-order-request-id="${row.id}">
+                ${renderRequestStatusOptions(row.status || "new")}
+              </select>
+            </td>
+            <td class="admin-request-notes">
+              <textarea maxlength="1000" data-order-request-notes data-order-request-id="${row.id}">${escapeHtml(row.admin_notes || "")}</textarea>
+            </td>
+            <td>
+              <button class="btn" type="button" data-order-request-save data-order-request-id="${row.id}">Enregistrer</button>
+            </td>
           </tr>
         `;
       })
@@ -339,6 +429,14 @@
     barometerForm.target_orders.value = first.target_orders;
     barometerForm.next_milestone.value = first.next_milestone || "";
     updateBarometerPreview(first.current_orders, first.target_orders, first.next_milestone);
+  }
+
+  async function loadOrderRequests() {
+    const res = await apiFetch(
+      "/rest/v1/order_requests?select=id,customer_name,customer_email,category,product_name,player_age,budget_eur,details,pickup_notes,status,admin_notes,created_at,updated_at&order=created_at.desc"
+    );
+    const rows = await res.json();
+    renderOrderRequests(rows);
   }
 
   async function loadProducts() {
@@ -662,6 +760,42 @@
     }
   }
 
+  async function handleOrderRequestsClick(event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const saveButton = target.closest("[data-order-request-save]");
+    if (!saveButton) return;
+
+    const requestId = saveButton.getAttribute("data-order-request-id");
+    if (!requestId || !requestsBody) return;
+
+    const statusField = requestsBody.querySelector(`[data-order-request-status][data-order-request-id="${requestId}"]`);
+    const notesField = requestsBody.querySelector(`[data-order-request-notes][data-order-request-id="${requestId}"]`);
+    const status = statusField instanceof HTMLSelectElement ? statusField.value : "new";
+    const adminNotes = notesField instanceof HTMLTextAreaElement ? notesField.value.trim() : "";
+
+    if (!requestStatuses.some(([value]) => value === status)) {
+      setFeedback(requestsFeedback, "Statut de demande invalide.", true);
+      return;
+    }
+
+    try {
+      await apiFetch(`/rest/v1/order_requests?id=eq.${encodeURIComponent(requestId)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          status,
+          admin_notes: adminNotes || null,
+          updated_at: new Date().toISOString(),
+        }),
+      });
+      setFeedback(requestsFeedback, "Demande mise à jour.", false);
+      await loadOrderRequests();
+    } catch (err) {
+      setFeedback(requestsFeedback, err.message || "Impossible de mettre à jour la demande.", true);
+    }
+  }
+
   async function handleProductsClick(event) {
     const target = event.target;
     if (!(target instanceof Element)) return;
@@ -836,6 +970,7 @@
     if (hasAccountsModule && accountsSection) accountsSection.hidden = false;
     if (hasBarometerModule && barometerSection) barometerSection.hidden = false;
     if (hasProductsModule && productsSection) productsSection.hidden = false;
+    if (hasRequestsModule && requestsSection) requestsSection.hidden = false;
 
     if (hasAccountsModule) {
       accountsBody?.addEventListener("click", handleAccountsClick);
@@ -843,6 +978,9 @@
     if (hasProductsModule) {
       productsBody?.addEventListener("click", handleProductsClick);
       productForm?.addEventListener("submit", handleProductSubmit);
+    }
+    if (hasRequestsModule) {
+      requestsBody?.addEventListener("click", handleOrderRequestsClick);
     }
     if (hasBarometerModule) {
       thresholdsBody?.addEventListener("click", handleThresholdsClick);
@@ -857,6 +995,7 @@
     if (hasAccountsModule) loadingTasks.push(loadAccounts());
     if (hasBarometerModule) loadingTasks.push(loadBarometer());
     if (hasProductsModule) loadingTasks.push(loadProducts());
+    if (hasRequestsModule) loadingTasks.push(loadOrderRequests());
     await Promise.all(loadingTasks);
 
     if (hasBarometerModule) {

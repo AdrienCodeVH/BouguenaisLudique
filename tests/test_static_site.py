@@ -135,6 +135,38 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("and admin_notes is null", schema)
         self.assertIn('create policy "order_requests_admin_manage"', schema)
 
+    def test_admin_hub_links_to_order_requests_followup(self):
+        page = read_page("pages/admin.html")
+
+        self.assertIn('href="./admin-demandes.html"', page)
+        self.assertIn("Demandes de commande", page)
+        self.assertIn("Suivre les demandes", page)
+
+    def test_admin_order_requests_page_exposes_tracking_table(self):
+        page = read_page("pages/admin-demandes.html")
+
+        self.assertIn("Demandes de commande", page)
+        self.assertIn('id="admin-requests-section"', page)
+        self.assertIn('id="admin-requests-feedback"', page)
+        self.assertIn('id="admin-requests-body"', page)
+        self.assertIn("Notes admin", page)
+        self.assertIn("Statut", page)
+        self.assertIn('src="../assets/js/admin.js"', page)
+
+    def test_admin_script_manages_order_requests(self):
+        script = read_page("assets/js/admin.js")
+
+        self.assertIn("hasRequestsModule", script)
+        self.assertIn("function renderOrderRequests(rows)", script)
+        self.assertIn("async function loadOrderRequests()", script)
+        self.assertIn("async function handleOrderRequestsClick(event)", script)
+        self.assertIn("/rest/v1/order_requests?select=", script)
+        self.assertIn("/rest/v1/order_requests?id=eq.", script)
+        self.assertIn('method: "PATCH"', script)
+        self.assertIn("escapeHtml(row.details)", script)
+        self.assertIn("data-order-request-status", script)
+        self.assertIn("data-order-request-notes", script)
+
     def test_homepage_points_to_order_flow(self):
         page = read_page("index.html")
 

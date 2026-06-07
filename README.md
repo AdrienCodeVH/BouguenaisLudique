@@ -8,7 +8,7 @@ Le projet propose :
 - une page d'accueil orientée storytelling avec navigation par slides ;
 - une page de demande de commande avant ouverture d'un catalogue complet ;
 - des pages de connexion/inscription connectees a Supabase Auth ;
-- un espace admin pour gerer les roles, le barometre de commandes et les produits.
+- un espace admin pour gerer les roles, le barometre, les produits et les demandes de commande.
 
 Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
 
@@ -32,7 +32,8 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
 - Espace admin (`pages/admin.html`) :
   - changement de role utilisateur (`client`, `employee`, `admin`) ;
   - mise a jour du barometre ;
-  - ajout/suppression de produits.
+  - ajout/suppression de produits ;
+  - suivi des demandes de commande avec statut et notes internes.
 
 ## Arborescence
 
