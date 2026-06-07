@@ -79,6 +79,17 @@ Puis ouvrir :
 - `http://127.0.0.1:5173/`
 - `http://127.0.0.1:5173/pages/admin.html` (zone admin)
 
+## Tests
+
+Depuis la racine du projet :
+
+```bash
+python3 -m unittest discover -s tests
+```
+
+Les tests statiques verifient notamment le parcours de demande de commande, l'absence de
+catalogue public ouvert et les liens HTML locaux.
+
 ## Configuration Supabase
 
 1. Creer un projet Supabase.
