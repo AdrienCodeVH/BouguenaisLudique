@@ -963,12 +963,16 @@ a {
 }
 
 .order-step-card {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-content: start;
-  align-items: start;
-  column-gap: 0.65rem;
-  row-gap: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.order-step-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-height: 3rem;
 }
 
 .order-step-number {
@@ -976,10 +980,12 @@ a {
   align-items: center;
   justify-content: center;
   margin-top: 0.05rem;
-  width: 2rem;
-  height: 2rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  flex: 0 0 1.65rem;
   border-radius: 999px;
   color: #12335f;
+  font-size: 0.82rem;
   font-weight: 800;
   background: linear-gradient(
     145deg,
@@ -990,13 +996,8 @@ a {
 }
 
 .order-step-card h3 {
-  min-height: 2.45em;
   margin: 0;
   line-height: 1.22;
-}
-
-.order-step-card p {
-  grid-column: 1 / -1;
 }
 
 .order-cta {
