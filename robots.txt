@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /BouguenaisLudique/
+Disallow: /BouguenaisLudique/pages/admin
+Disallow: /BouguenaisLudique/pages/connexion.html
+Disallow: /BouguenaisLudique/pages/inscription.html
+Disallow: /BouguenaisLudique/pages/mon-espace.html
+
+Sitemap: https://adriencodevh.github.io/BouguenaisLudique/sitemap.xml

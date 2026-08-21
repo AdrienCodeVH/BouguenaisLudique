@@ -1,6 +1,8 @@
 from html.parser import HTMLParser
 from pathlib import Path
+import struct
 import unittest
+import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,6 +113,118 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
 
         self.assertIn('id="order-request-turnstile"', page)
         self.assertIn("challenges.cloudflare.com/turnstile/v0/api.js", page)
+        self.assertIn('href="./confidentialite.html"', page)
+        self.assertIn("vous inscrivent à aucune newsletter", page)
+
+    def test_legal_and_privacy_pages_cover_current_services(self):
+        legal = read_page("pages/mentions-legales.html")
+        privacy = read_page("pages/confidentialite.html")
+
+        self.assertIn("Mentions légales", legal)
+        self.assertIn("Projet en cours de création", legal)
+        self.assertIn("8 rue de la Commune de Paris 1871", legal)
+        self.assertIn("bouguenaisludique@gmail.com", legal)
+        self.assertIn("GitHub, Inc.", legal)
+        self.assertIn("Supabase", legal)
+        self.assertIn("Cloudflare Turnstile", legal)
+        self.assertIn("Resend", legal)
+        self.assertIn("À compléter avant l'ouverture commerciale", legal)
+
+        self.assertIn("Politique de confidentialité", privacy)
+        self.assertIn("Mesures précontractuelles", privacy)
+        self.assertIn("Aucun outil publicitaire", privacy)
+        self.assertIn("réclamation à la CNIL", privacy)
+        self.assertIn("https://supabase.com/privacy", privacy)
+        self.assertIn("https://www.cloudflare.com/privacypolicy/", privacy)
+        self.assertIn("https://resend.com/legal/privacy-policy", privacy)
+
+    def test_every_page_exposes_legal_footer_links(self):
+        for html_file in ROOT.glob("**/*.html"):
+            with self.subTest(page=html_file.relative_to(ROOT)):
+                page = html_file.read_text(encoding="utf-8")
+                self.assertIn('class="footer-nav"', page)
+                self.assertIn("mentions-legales.html", page)
+                self.assertIn("confidentialite.html", page)
+
+    def test_public_pages_have_canonical_and_social_metadata(self):
+        public_pages = (
+            "index.html",
+            "pages/catalogue.html",
+            "pages/contact.html",
+            "pages/cartes-collection.html",
+            "pages/jeux-societe.html",
+            "pages/classiques-puzzle-echecs.html",
+        )
+
+        for relative_path in public_pages:
+            with self.subTest(page=relative_path):
+                page = read_page(relative_path)
+                self.assertIn('rel="canonical"', page)
+                self.assertIn('property="og:title"', page)
+                self.assertIn('property="og:description"', page)
+                self.assertIn('property="og:image"', page)
+                self.assertIn('property="og:image:alt"', page)
+                self.assertIn('name="twitter:card" content="summary_large_image"', page)
+                self.assertIn("og-bouguenais-ludique.png", page)
+
+    def test_social_preview_is_a_wide_png(self):
+        image_path = ROOT / "assets/images/og-bouguenais-ludique.png"
+        self.assertTrue(image_path.exists())
+        self.assertGreater(image_path.stat().st_size, 100_000)
+
+        with image_path.open("rb") as image:
+            self.assertEqual(image.read(8), b"\x89PNG\r\n\x1a\n")
+            image.read(8)
+            width, height = struct.unpack(">II", image.read(8))
+
+        self.assertGreaterEqual(width, 1200)
+        self.assertGreaterEqual(height, 630)
+        self.assertAlmostEqual(width / height, 1200 / 630, delta=0.02)
+
+    def test_private_pages_are_not_indexable(self):
+        private_pages = (
+            "pages/connexion.html",
+            "pages/inscription.html",
+            "pages/mon-espace.html",
+            "pages/admin.html",
+            "pages/admin-barometre.html",
+            "pages/admin-comptes.html",
+            "pages/admin-demandes.html",
+            "pages/admin-produits.html",
+        )
+
+        for relative_path in private_pages:
+            with self.subTest(page=relative_path):
+                self.assertIn(
+                    '<meta name="robots" content="noindex, nofollow" />',
+                    read_page(relative_path),
+                )
+
+    def test_robots_sitemap_and_404_are_ready_for_github_pages(self):
+        robots = read_page("robots.txt")
+        sitemap_path = ROOT / "sitemap.xml"
+        error_page = read_page("404.html")
+
+        self.assertIn("Sitemap: https://adriencodevh.github.io/BouguenaisLudique/sitemap.xml", robots)
+        self.assertIn("Disallow: /BouguenaisLudique/pages/admin", robots)
+        self.assertIn("Disallow: /BouguenaisLudique/pages/mon-espace.html", robots)
+
+        root = ET.parse(sitemap_path).getroot()
+        namespace = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+        locations = [node.text for node in root.findall("sm:url/sm:loc", namespace)]
+        self.assertIn("https://adriencodevh.github.io/BouguenaisLudique/", locations)
+        self.assertIn(
+            "https://adriencodevh.github.io/BouguenaisLudique/pages/catalogue.html",
+            locations,
+        )
+        self.assertNotIn(
+            "https://adriencodevh.github.io/BouguenaisLudique/pages/admin.html",
+            locations,
+        )
+
+        self.assertIn("Cette page a quitté la table", error_page)
+        self.assertIn('<meta name="robots" content="noindex, follow" />', error_page)
+        self.assertIn('href="./index.html"', error_page)
 
     def test_order_request_script_validates_and_submits_to_supabase(self):
         script = read_page("assets/js/order-request.js")
