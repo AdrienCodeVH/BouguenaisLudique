@@ -1,5 +1,6 @@
 from html.parser import HTMLParser
 from pathlib import Path
+import re
 import struct
 import unittest
 import xml.etree.ElementTree as ET
@@ -68,7 +69,7 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertNotIn("Produits disponibles", page)
         self.assertNotIn("catalogue-products-status", page)
         self.assertIn('id="order-request-form"', page)
-        self.assertIn('src="../assets/js/order-request.js"', page)
+        self.assertIn('src="../assets/js/order-request.js?v=', page)
 
     def test_order_request_form_fields_have_html_validation(self):
         page = read_page("pages/catalogue.html")
@@ -385,7 +386,7 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn('class="admin-table admin-request-table"', page)
         self.assertIn("Notes admin", page)
         self.assertIn("Statut", page)
-        self.assertIn('src="../assets/js/admin.js"', page)
+        self.assertIn('src="../assets/js/admin.js?v=', page)
 
     def test_admin_script_manages_order_requests(self):
         script = read_page("assets/js/admin.js")
@@ -512,6 +513,21 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
                     missing_links.append(f"{html_file.relative_to(ROOT)} -> {href}")
 
         self.assertEqual([], missing_links)
+
+    def test_local_css_and_javascript_assets_are_versioned(self):
+        unversioned_assets = []
+
+        for html_file in ROOT.glob("**/*.html"):
+            page = html_file.read_text(encoding="utf-8")
+            matches = re.findall(
+                r'(?:\./|\.\./)assets/(?:css|js)/[^"?]+\.(?:css|js)(?=")',
+                page,
+            )
+            unversioned_assets.extend(
+                f"{html_file.relative_to(ROOT)} -> {asset}" for asset in matches
+            )
+
+        self.assertEqual([], unversioned_assets)
 
 
 if __name__ == "__main__":
