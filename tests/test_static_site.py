@@ -168,7 +168,11 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
     def test_order_request_notification_function_is_secret_and_escapes_html(self):
         function = read_page("supabase/functions/notify-order-request/index.ts")
 
-        self.assertIn('withSupabase({ auth: "secret" }, handler)', function)
+        self.assertIn('withSupabase({ auth: "secret:*" }, handler)', function)
+        self.assertIn("function normalizeWebhookAuth(request: Request)", function)
+        self.assertIn('headers.get("authorization")', function)
+        self.assertIn('headers.set("apikey", secretKey)', function)
+        self.assertIn("protectedHandler(normalizeWebhookAuth(request))", function)
         self.assertIn('Deno.env.get("RESEND_API_KEY")', function)
         self.assertIn('Deno.env.get("ORDER_NOTIFICATION_TO")', function)
         self.assertIn('fetch("https://api.resend.com/emails"', function)
