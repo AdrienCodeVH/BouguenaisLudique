@@ -3,6 +3,19 @@
   const feedback = document.getElementById("signup-feedback");
   if (!form || !feedback || !window.BLAuth) return;
 
+  const shouldReturnToOrder = new URLSearchParams(window.location.search).get("next") === "order";
+
+  function getSuccessDestination() {
+    return shouldReturnToOrder
+      ? "./catalogue.html?resume=order#demande-commande"
+      : "../index.html";
+  }
+
+  const loginLink = form.querySelector('.auth-alt-link a[href$="connexion.html"]');
+  if (shouldReturnToOrder && loginLink) {
+    loginLink.href = "./connexion.html?next=order";
+  }
+
   function setFeedback(message, isError) {
     feedback.textContent = message;
     feedback.classList.toggle("form-feedback--error", Boolean(isError));
@@ -80,13 +93,20 @@
             expires_at: expires,
           })
         );
-        setFeedback("Compte créé. Redirection…", false);
-        window.location.href = "../index.html";
+        setFeedback(
+          shouldReturnToOrder
+            ? "Compte créé. Retour vers votre demande…"
+            : "Compte créé. Redirection…",
+          false
+        );
+        window.location.href = getSuccessDestination();
         return;
       }
 
       setFeedback(
-        "Compte créé. Si la confirmation e-mail est activée sur Supabase, vérifie ta boîte mail puis connecte-toi.",
+        shouldReturnToOrder
+          ? "Compte créé. Vérifiez votre boîte mail si nécessaire, puis connectez-vous pour reprendre votre demande."
+          : "Compte créé. Si la confirmation e-mail est activée sur Supabase, vérifie ta boîte mail puis connecte-toi.",
         false
       );
       form.reset();

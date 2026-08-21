@@ -3,6 +3,19 @@
   const feedback = document.getElementById("login-feedback");
   if (!form || !feedback || !window.BLAuth) return;
 
+  const shouldReturnToOrder = new URLSearchParams(window.location.search).get("next") === "order";
+
+  function getSuccessDestination() {
+    return shouldReturnToOrder
+      ? "./catalogue.html?resume=order#demande-commande"
+      : "../index.html";
+  }
+
+  const signupLink = form.querySelector('.auth-alt-link a[href$="inscription.html"]');
+  if (shouldReturnToOrder && signupLink) {
+    signupLink.href = "./inscription.html?next=order";
+  }
+
   function toFriendlyLoginError(err) {
     const raw = String(err && err.message ? err.message : "").toLowerCase();
     if (!raw) return "Connexion impossible. Réessaie dans quelques instants.";
@@ -66,8 +79,13 @@
           expires_at: data.expires_at,
         })
       );
-      setFeedback("Connexion réussie. Redirection…", false);
-      window.location.href = "../index.html";
+      setFeedback(
+        shouldReturnToOrder
+          ? "Connexion réussie. Retour vers votre demande…"
+          : "Connexion réussie. Redirection…",
+        false
+      );
+      window.location.href = getSuccessDestination();
     } catch (err) {
       setFeedback(toFriendlyLoginError(err), true);
     } finally {

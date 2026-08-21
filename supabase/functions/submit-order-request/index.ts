@@ -1,6 +1,6 @@
 import { type SupabaseContext, withSupabase } from "npm:@supabase/server@^1";
 
-type OrderRequestInsert = {
+type OrderRequestFields = {
   customer_name: string;
   customer_email: string;
   category: string;
@@ -9,6 +9,10 @@ type OrderRequestInsert = {
   budget_eur: number | null;
   details: string;
   pickup_notes: string | null;
+};
+
+type OrderRequestInsert = OrderRequestFields & {
+  linked_user_id: string;
 };
 
 type OrderRequestRow = OrderRequestInsert & {
@@ -36,7 +40,7 @@ type Database = {
 };
 
 type ValidSubmission = {
-  order: OrderRequestInsert;
+  order: OrderRequestFields;
   turnstileToken: string;
   honeypot: string;
 };
@@ -206,6 +210,15 @@ async function handler(
     return jsonResponse({ error: "invalid_submission" }, 422);
   }
 
+  const authenticatedUserId = cleanText(context.userClaims?.id);
+  const authenticatedEmail = cleanText(context.userClaims?.email).toLowerCase();
+  if (!authenticatedUserId || !EMAIL_PATTERN.test(authenticatedEmail)) {
+    return jsonResponse({ error: "authentication_required" }, 401);
+  }
+  if (submission.order.customer_email !== authenticatedEmail) {
+    return jsonResponse({ error: "account_email_mismatch" }, 409);
+  }
+
   // Un robot simple remplit souvent les champs masqués. On répond comme pour
   // un succès afin de ne pas lui révéler la protection, sans écrire en base.
   if (submission.honeypot) {
@@ -225,7 +238,7 @@ async function handler(
   const { count, error: rateLimitError } = await context.supabaseAdmin
     .from("order_requests")
     .select("id", { count: "exact", head: true })
-    .eq("customer_email", submission.order.customer_email)
+    .eq("linked_user_id", authenticatedUserId)
     .gte("created_at", duplicateSince);
 
   if (rateLimitError) {
@@ -235,9 +248,15 @@ async function handler(
     return jsonResponse({ error: "rate_limited" }, 429);
   }
 
+  const order: OrderRequestInsert = {
+    ...submission.order,
+    customer_email: authenticatedEmail,
+    linked_user_id: authenticatedUserId,
+  };
+
   const { error: insertError } = await context.supabaseAdmin
     .from("order_requests")
-    .insert(submission.order);
+    .insert(order);
 
   if (insertError) {
     return jsonResponse({ error: "database_unavailable" }, 503);
@@ -249,11 +268,11 @@ async function handler(
 export default {
   fetch: withSupabase<Database>(
     {
-      auth: "publishable:*",
+      auth: "user",
       cors: {
         headers: {
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Headers": "apikey, content-type",
+          "Access-Control-Allow-Headers": "apikey, authorization, content-type",
           "Access-Control-Allow-Methods": "POST, OPTIONS",
         },
       },

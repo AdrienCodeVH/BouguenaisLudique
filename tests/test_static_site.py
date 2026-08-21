@@ -68,7 +68,12 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
 
         self.assertNotIn("Produits disponibles", page)
         self.assertNotIn("catalogue-products-status", page)
+        self.assertIn('id="order-request-auth-gate"', page)
+        self.assertIn("Créez votre compte pour commander", page)
+        self.assertIn('href="./inscription.html?next=order"', page)
+        self.assertIn('href="./connexion.html?next=order"', page)
         self.assertIn('id="order-request-form"', page)
+        self.assertIn('class="auth-form order-request-form" novalidate hidden', page)
         self.assertIn('src="../assets/js/order-request.js?v=', page)
 
     def test_order_request_form_fields_have_html_validation(self):
@@ -186,6 +191,7 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         private_pages = (
             "pages/connexion.html",
             "pages/inscription.html",
+            "pages/commande-confirmee.html",
             "pages/mon-espace.html",
             "pages/admin.html",
             "pages/admin-barometre.html",
@@ -236,11 +242,36 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("reportValidity", script)
         self.assertIn("/functions/v1/submit-order-request", script)
         self.assertIn('method: "POST"', script)
+        self.assertIn("Authorization: `Bearer ${authenticatedSession.accessToken}`", script)
+        self.assertIn('window.BLAuthUi?.getStoredSession?.()', script)
+        self.assertIn('window.location.href = "./commande-confirmee.html"', script)
         self.assertIn("turnstile_token", script)
         self.assertIn("company_website", script)
         self.assertIn("window.turnstile.reset", script)
         self.assertNotIn("/rest/v1/order_requests", script)
         self.assertIn("window.BLOrderRequest", script)
+
+    def test_authentication_returns_to_the_order_flow(self):
+        signup_script = read_page("assets/js/inscription.js")
+        login_script = read_page("assets/js/connexion.js")
+
+        for script in (signup_script, login_script):
+            self.assertIn('get("next") === "order"', script)
+            self.assertIn('"./catalogue.html?resume=order#demande-commande"', script)
+
+        self.assertIn('"./connexion.html?next=order"', signup_script)
+        self.assertIn('"./inscription.html?next=order"', login_script)
+
+    def test_order_confirmation_page_returns_home_automatically(self):
+        page = read_page("pages/commande-confirmee.html")
+        script = read_page("assets/js/order-confirmation.js")
+
+        self.assertIn("Votre commande va être prise en charge", page)
+        self.assertIn('id="confirmation-countdown"', page)
+        self.assertIn('href="../index.html"', page)
+        self.assertIn('src="../assets/js/order-confirmation.js?v=', page)
+        self.assertIn("const redirectDelayMs = 8000", script)
+        self.assertIn('window.location.replace("../index.html")', script)
 
     def test_order_requests_schema_and_policies_exist(self):
         schema = read_page("supabase/schema.sql")
@@ -324,7 +355,14 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         migration = read_page("supabase/secure_order_requests.sql")
 
         self.assertIn('withSupabase<Database>(', function)
-        self.assertIn('auth: "publishable:*"', function)
+        self.assertIn('auth: "user"', function)
+        self.assertNotIn('auth: "publishable:*"', function)
+        self.assertIn("context.userClaims?.id", function)
+        self.assertIn("context.userClaims?.email", function)
+        self.assertIn('Authorization: `Bearer ${authenticatedSession.accessToken}`', read_page("assets/js/order-request.js"))
+        self.assertIn("linked_user_id: authenticatedUserId", function)
+        self.assertIn('.eq("linked_user_id", authenticatedUserId)', function)
+        self.assertIn('"Access-Control-Allow-Headers": "apikey, authorization, content-type"', function)
         self.assertIn('Deno.env.get("TURNSTILE_SECRET_KEY")', function)
         self.assertIn("challenges.cloudflare.com/turnstile/v0/siteverify", function)
         self.assertIn('result.action === TURNSTILE_ACTION', function)
