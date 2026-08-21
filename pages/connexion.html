@@ -8,6 +8,8 @@
       name="description"
       content="Connexion à votre espace Bouguenais Ludique."
     />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#1e40af" />
     <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
     <link rel="stylesheet" href="../assets/css/style.css" />
   </head>
@@ -69,6 +71,10 @@
               />
             </div>
             <button type="submit" class="btn auth-form-submit">Connexion</button>
+            <p class="form-privacy-note">
+              La connexion est sécurisée par Supabase. Consultez la
+              <a href="./confidentialite.html">politique de confidentialité</a>.
+            </p>
             <p id="login-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
             <p class="auth-alt-link">
               Pas encore de compte ?
@@ -80,8 +86,13 @@
     </main>
 
     <footer class="site-footer">
-      <div class="container">
+      <div class="container footer-inner">
         <p>© 2026 Bouguenais Ludique</p>
+        <nav class="footer-nav" aria-label="Informations légales">
+          <a href="./mentions-legales.html">Mentions légales</a>
+          <a href="./confidentialite.html">Confidentialité</a>
+          <a href="./contact.html">Contact</a>
+        </nav>
       </div>
     </footer>
 

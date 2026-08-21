@@ -3,10 +3,41 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bouguenais Ludique</title>
+    <title>Bouguenais Ludique | Jeux de société à Bouguenais</title>
     <meta
       name="description"
-      content="Bouguenais Ludique : univers jeux de société, événements ludiques et découvertes à Bouguenais."
+      content="Conseils en jeux de société à Bouguenais, commandes sur demande et retrait local. Découvrez un projet ludique construit avec ses joueurs."
+    />
+    <meta name="theme-color" content="#1e40af" />
+    <link rel="canonical" href="https://adriencodevh.github.io/BouguenaisLudique/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="Bouguenais Ludique" />
+    <meta property="og:title" content="Bouguenais Ludique | Jeux de société à Bouguenais" />
+    <meta
+      property="og:description"
+      content="Conseil local, jeux de société et commandes sur demande à Bouguenais."
+    />
+    <meta property="og:url" content="https://adriencodevh.github.io/BouguenaisLudique/" />
+    <meta
+      property="og:image"
+      content="https://adriencodevh.github.io/BouguenaisLudique/assets/images/og-bouguenais-ludique.png"
+    />
+    <meta property="og:image:width" content="1731" />
+    <meta property="og:image:height" content="909" />
+    <meta
+      property="og:image:alt"
+      content="Bouguenais Ludique, jeux de société, conseil local et commande sur demande"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Bouguenais Ludique | Jeux de société à Bouguenais" />
+    <meta
+      name="twitter:description"
+      content="Conseil local, jeux de société et commandes sur demande à Bouguenais."
+    />
+    <meta
+      name="twitter:image"
+      content="https://adriencodevh.github.io/BouguenaisLudique/assets/images/og-bouguenais-ludique.png"
     />
     <link rel="icon" href="./assets/images/favicon_BL.ico" type="image/x-icon" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,6 +47,16 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./assets/css/style.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Bouguenais Ludique",
+        "url": "https://adriencodevh.github.io/BouguenaisLudique/",
+        "description": "Jeux de société, conseil local et commandes sur demande à Bouguenais",
+        "inLanguage": "fr-FR"
+      }
+    </script>
   </head>
   <body>
     <header class="site-header">
@@ -141,9 +182,9 @@
             <div class="container">
               <h2>Un projet qui évolue avec vous</h2>
               <p>
-                Votre engagement fait grandir la boutique. Un baromètre de commandes
-                permettra de débloquer progressivement des nouveautés pour toute la
-                communauté.
+                Une fois connecté, votre baromètre personnel suit uniquement les commandes
+                validées qui sont rattachées à votre compte. Les autres visiteurs ne voient
+                ni votre progression ni celle des autres joueurs.
               </p>
 
               <ul class="feature-list">
@@ -174,13 +215,13 @@
     <aside
       class="project-barometer project-barometer-card"
       aria-labelledby="barometer-heading"
-      aria-label="Avancement du projet"
+      aria-label="Mon avancement personnel"
       hidden
     >
       <div class="container">
         <div class="project-barometer-top">
           <p id="barometer-heading" class="project-barometer-heading">
-            Projet en cours
+            Mon avancement
           </p>
           <p class="project-barometer-count">
             <strong>0</strong>
@@ -198,13 +239,18 @@
         >
           <div class="project-barometer-fill" style="--bar-target: 0%"></div>
         </div>
-        <p class="project-barometer-hint">Chargement du barometre...</p>
+        <p class="project-barometer-hint">Chargement de votre baromètre...</p>
       </div>
     </aside>
 
     <footer class="site-footer site-footer-persistent">
-      <div class="container">
+      <div class="container footer-inner">
         <p>© 2026 Bouguenais Ludique</p>
+        <nav class="footer-nav" aria-label="Informations légales">
+          <a href="./pages/mentions-legales.html">Mentions légales</a>
+          <a href="./pages/confidentialite.html">Confidentialité</a>
+          <a href="./pages/contact.html">Contact</a>
+        </nav>
       </div>
     </footer>
 

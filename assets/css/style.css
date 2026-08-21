@@ -26,7 +26,7 @@
   --border-radius: 14px;
   --shadow: 0 14px 32px color-mix(in srgb, var(--blue) 12%, transparent);
   /* Bandeau copyright fixe en bas */
-  --footer-strip-height: 48px;
+  --footer-strip-height: 56px;
   /* Espace entre la carte baromètre et le footer */
   --barometer-footer-gap: 14px;
   /* Hauteur estimée de la carte baromètre (ombre comprise) */
@@ -48,6 +48,15 @@ body {
 
 a {
   color: inherit;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--yellow) 72%, var(--blue) 28%);
+  outline-offset: 3px;
 }
 
 .container {
@@ -363,6 +372,17 @@ a {
 }
 
 @media (max-height: 860px) and (min-width: 901px) {
+  .slide-panel > .hero.hero-brand-only {
+    min-height: min(31vh, 220px);
+    padding-top: 0.45rem;
+    padding-bottom: 0.35rem;
+  }
+
+  #concept.section {
+    padding-top: 1.15rem;
+    padding-bottom: 0.65rem;
+  }
+
   #concept.section p:last-of-type {
     display: none;
   }
@@ -617,6 +637,20 @@ a {
 .form-hint {
   font-size: 0.78rem;
   color: var(--text-light);
+}
+
+.form-privacy-note {
+  margin: -0.2rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--text-light);
+}
+
+.form-privacy-note a,
+.form-check a {
+  color: var(--blue);
+  font-weight: 700;
+  text-underline-offset: 0.16em;
 }
 
 /* Pilotage des demandes de commande */
@@ -1042,6 +1076,39 @@ a {
   padding: 1.5rem 0;
 }
 
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.footer-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem 1rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+
+.footer-nav a {
+  color: var(--text-light);
+  text-decoration-color: color-mix(in srgb, var(--blue) 32%, transparent);
+  text-underline-offset: 0.18em;
+}
+
+.footer-nav a:hover,
+.footer-nav a:focus-visible,
+.footer-nav a[aria-current="page"] {
+  color: var(--blue);
+}
+
 .hero,
 .section,
 .section-alt,
@@ -1128,6 +1195,10 @@ a {
     var(--blue-muted) 55%,
     var(--yellow-soft) 100%
   );
+}
+
+.project-barometer-card[hidden] {
+  display: none;
 }
 
 .project-barometer-card::before {
@@ -1239,6 +1310,198 @@ a {
   font-size: 0.88rem;
 }
 
+.site-footer-persistent .footer-inner {
+  min-height: calc(var(--footer-strip-height) - 0.9rem);
+}
+
+/* Informations légales et confidentialité */
+.legal-hero {
+  background:
+    radial-gradient(circle at 15% 35%, color-mix(in srgb, var(--yellow) 16%, transparent), transparent 32%),
+    radial-gradient(circle at 85% 25%, color-mix(in srgb, var(--blue) 15%, transparent), transparent 34%),
+    linear-gradient(155deg, #fff, var(--blue-muted) 55%, var(--yellow-soft));
+}
+
+.legal-content {
+  display: grid;
+  max-width: 52rem;
+  gap: 1.15rem;
+}
+
+.legal-notice,
+.legal-section {
+  min-width: 0;
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+  border: 1px solid color-mix(in srgb, var(--blue) 14%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 94%, var(--blue-muted) 6%);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--blue) 7%, transparent);
+}
+
+.legal-notice {
+  border-color: color-mix(in srgb, var(--yellow) 44%, var(--border));
+  background: linear-gradient(145deg, #fff, color-mix(in srgb, var(--yellow-soft) 78%, #fff 22%));
+}
+
+.legal-notice strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: color-mix(in srgb, var(--accent-dark) 78%, var(--text) 22%);
+  font-size: 1.02rem;
+}
+
+.legal-notice p,
+.legal-section > :last-child,
+.legal-section address {
+  margin-bottom: 0;
+}
+
+.legal-section h2 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.2rem, 3vw, 1.55rem);
+  text-align: left;
+}
+
+.legal-section h2::after {
+  margin: 0.45rem 0 0;
+}
+
+.legal-section a {
+  color: var(--blue);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  text-underline-offset: 0.18em;
+}
+
+.legal-section address {
+  font-style: normal;
+}
+
+.legal-details {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.legal-details div {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.7fr) minmax(0, 1.3fr);
+  gap: 0.8rem 1rem;
+  padding: 0.85rem 1rem;
+  background: #fff;
+}
+
+.legal-details div + div {
+  border-top: 1px solid var(--border);
+}
+
+.legal-details dt {
+  font-weight: 750;
+  color: var(--text);
+}
+
+.legal-details dd {
+  margin: 0;
+  color: var(--text-light);
+}
+
+.legal-list {
+  display: grid;
+  gap: 0.55rem;
+  padding-left: 1.25rem;
+}
+
+.privacy-table-wrap {
+  margin: 0.9rem 0 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.privacy-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.privacy-table th,
+.privacy-table td {
+  padding: 0.8rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.privacy-table th {
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue-muted) 75%, #fff 25%);
+}
+
+.privacy-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.legal-updated {
+  margin: 0.35rem 0 0;
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.82rem;
+}
+
+/* Page 404 */
+.error-page-main {
+  display: grid;
+  place-items: center;
+  padding: clamp(2.5rem, 8vw, 6rem) 1rem;
+  background:
+    radial-gradient(circle at 20% 30%, color-mix(in srgb, var(--yellow) 18%, transparent), transparent 34%),
+    radial-gradient(circle at 80% 70%, color-mix(in srgb, var(--blue) 16%, transparent), transparent 36%),
+    var(--background);
+}
+
+.error-card {
+  width: min(680px, 100%);
+  padding: clamp(1.5rem, 5vw, 3rem);
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: color-mix(in srgb, #fff 94%, var(--blue-muted) 6%);
+  box-shadow: var(--shadow);
+}
+
+.error-code {
+  margin: 0;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(4.5rem, 17vw, 8rem);
+  line-height: 0.78;
+  color: color-mix(in srgb, var(--blue) 86%, var(--yellow) 14%);
+  text-shadow: 0.06em 0.06em 0 color-mix(in srgb, var(--yellow) 34%, transparent);
+}
+
+.error-card h1 {
+  margin-top: 0.45rem;
+}
+
+.error-card > p:not(.error-code, .eyebrow) {
+  max-width: 34rem;
+  margin-inline: auto;
+  color: var(--text-light);
+}
+
+.error-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.4rem;
+}
+
 /* Pages de contenu classiques (hors home en slides) */
 .content-page {
   min-height: 100vh;
@@ -1310,14 +1573,14 @@ a {
 }
 
 .order-step-card {
-  position: relative;
-  padding-top: 3.15rem;
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  align-content: start;
+  column-gap: 0.75rem;
+  row-gap: 0.9rem;
 }
 
 .order-step-number {
-  position: absolute;
-  top: 1rem;
-  left: 1.15rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1332,6 +1595,17 @@ a {
     color-mix(in srgb, var(--blue-soft) 42%, #fff 58%)
   );
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
+}
+
+.order-step-card h3 {
+  align-self: center;
+  margin-bottom: 0;
+  line-height: 1.25;
+}
+
+.order-step-card p {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 .order-cta {
@@ -1579,6 +1853,10 @@ a {
   box-shadow: 0 12px 30px color-mix(in srgb, var(--blue) 10%, transparent);
 }
 
+.content-page-contact .section h1 {
+  text-align: center;
+}
+
 @media (max-width: 700px) {
   .site-header .container {
     flex-direction: column;
@@ -1623,6 +1901,16 @@ a {
 
   .content-page-contact .section {
     padding: 1.2rem 0 2rem;
+  }
+
+  .footer-inner {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .legal-details div {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
   }
 }
 
@@ -1706,5 +1994,22 @@ a {
   .site-footer-persistent {
     position: static;
     padding: 1rem 0 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-nav {
+    width: 100%;
+    gap: 0.4rem 0.8rem;
+    font-size: 0.78rem;
+  }
+
+  .legal-notice,
+  .legal-section {
+    border-radius: 14px;
+  }
+
+  .error-actions .btn {
+    width: 100%;
   }
 }

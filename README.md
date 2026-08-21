@@ -15,6 +15,8 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
 ## Fonctionnalites
 
 - Navigation globale : accueil, demande de commande, contact, connexion, inscription.
+- Mise en ligne : métadonnées SEO et sociales, image Open Graph, sitemap, robots et page 404.
+- Transparence : mentions légales, politique de confidentialité et liens présents dans chaque pied de page.
 - Authentification email/mot de passe via Supabase REST (`/auth/v1`).
 - Stockage de session cote navigateur (`sessionStorage`).
 - Affichage conditionnel dans la navbar :
@@ -46,6 +48,9 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
 ```text
 .
 ├── index.html
+├── 404.html
+├── robots.txt
+├── sitemap.xml
 ├── pages/
 │   ├── admin.html
 │   ├── catalogue.html
@@ -54,9 +59,12 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
 │   ├── classiques-puzzle-echecs.html
 │   ├── connexion.html
 │   ├── inscription.html
+│   ├── mentions-legales.html
+│   ├── confidentialite.html
 │   └── contact.html
 ├── assets/
 │   ├── css/style.css
+│   ├── images/og-bouguenais-ludique.png
 │   └── js/
 │       ├── script.js
 │       ├── auth-config.js
@@ -100,7 +108,21 @@ python3 -m unittest discover -s tests
 ```
 
 Les tests statiques verifient notamment le parcours de demande de commande, l'absence de
-catalogue public ouvert et les liens HTML locaux.
+catalogue public ouvert, les liens HTML locaux, les pages légales, les métadonnées sociales,
+la page 404, le fichier robots et le sitemap.
+
+## Informations à finaliser avant l'ouverture commerciale
+
+Les pages légales sont structurées mais n'inventent aucune donnée d'entreprise. Les champs
+suivants restent explicitement signalés comme à compléter dans `pages/mentions-legales.html` :
+
+- identité de l'entrepreneur ou raison sociale ;
+- statut juridique et numéro d'immatriculation ;
+- numéro de téléphone ;
+- directeur de publication ;
+- médiateur de la consommation.
+
+La page doit être mise à jour dès que ces informations sont connues et avant la première vente.
 
 ## Configuration Supabase
 

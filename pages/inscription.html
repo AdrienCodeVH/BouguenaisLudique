@@ -8,6 +8,8 @@
       name="description"
       content="Créer un compte Bouguenais Ludique."
     />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#1e40af" />
     <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
     <link rel="stylesheet" href="../assets/css/style.css" />
   </head>
@@ -93,7 +95,10 @@
             </div>
             <label class="form-check">
               <input type="checkbox" id="signup-consent" name="consent" required />
-              <span>J’accepte les conditions d’utilisation et la politique de confidentialité.</span>
+              <span>
+                J'ai lu la <a href="./confidentialite.html">politique de confidentialité</a>
+                et j'accepte la création de mon compte.
+              </span>
             </label>
             <button type="submit" class="btn auth-form-submit">Créer mon compte</button>
             <p id="signup-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
@@ -107,8 +112,13 @@
     </main>
 
     <footer class="site-footer">
-      <div class="container">
+      <div class="container footer-inner">
         <p>© 2026 Bouguenais Ludique</p>
+        <nav class="footer-nav" aria-label="Informations légales">
+          <a href="./mentions-legales.html">Mentions légales</a>
+          <a href="./confidentialite.html">Confidentialité</a>
+          <a href="./contact.html">Contact</a>
+        </nav>
       </div>
     </footer>
 
