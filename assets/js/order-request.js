@@ -1,7 +1,11 @@
 (function () {
   const form = document.getElementById("order-request-form");
   const feedback = document.getElementById("order-request-feedback");
+  const turnstileContainer = document.getElementById("order-request-turnstile");
   if (!form || !feedback || !window.BLAuth) return;
+
+  let turnstileToken = "";
+  let turnstileWidgetId = null;
 
   const allowedCategories = [
     "tcg",
@@ -36,6 +40,8 @@
       budget_eur: parseOptionalNumber(form.budget_eur.value),
       details: trimValue(form.details.value),
       pickup_notes: trimValue(form.pickup_notes.value),
+      company_website: trimValue(form.company_website.value),
+      turnstile_token: turnstileToken,
       consent: form.consent.checked,
     };
   }
@@ -73,6 +79,9 @@
     }
     if (!values.consent) {
       errors.consent = "Acceptez d'être recontacté pour envoyer la demande.";
+    }
+    if (!values.turnstile_token) {
+      errors.turnstile_token = "Confirmez la vérification anti-robot avant l'envoi.";
     }
 
     return errors;
@@ -117,8 +126,51 @@
       budget_eur: values.budget_eur,
       details: values.details,
       pickup_notes: values.pickup_notes || null,
+      company_website: values.company_website,
+      turnstile_token: values.turnstile_token,
     };
   }
+
+  function resetTurnstile() {
+    turnstileToken = "";
+    if (
+      turnstileWidgetId !== null &&
+      window.turnstile &&
+      typeof window.turnstile.reset === "function"
+    ) {
+      window.turnstile.reset(turnstileWidgetId);
+    }
+  }
+
+  function renderTurnstile() {
+    if (!turnstileContainer || !window.turnstile || turnstileWidgetId !== null) return;
+
+    const sitekey = trimValue(window.BL_TURNSTILE_SITE_KEY);
+    if (!sitekey || sitekey === "VOTRE_CLE_SITE_TURNSTILE") {
+      setFeedback("La protection anti-robot n'est pas encore configurée.", true);
+      return;
+    }
+
+    turnstileWidgetId = window.turnstile.render(turnstileContainer, {
+      sitekey,
+      action: "order_request",
+      language: "fr",
+      callback(token) {
+        turnstileToken = token;
+        setFeedback("");
+      },
+      "expired-callback"() {
+        turnstileToken = "";
+        setFeedback("La vérification anti-robot a expiré. Recommencez-la avant l'envoi.", true);
+      },
+      "error-callback"() {
+        turnstileToken = "";
+        setFeedback("La vérification anti-robot n'a pas pu charger. Réessayez.", true);
+      },
+    });
+  }
+
+  window.blTurnstileReady = renderTurnstile;
 
   async function submitOrderRequest(values) {
     const cfg = window.BLAuth.getSupabaseConfig();
@@ -126,20 +178,23 @@
       throw new Error("Configuration Supabase manquante. Écrivez directement à bouguenaisludique@gmail.com.");
     }
 
-    const res = await fetch(`${cfg.url}/rest/v1/order_requests`, {
+    const res = await fetch(`${cfg.url}/functions/v1/submit-order-request`, {
       method: "POST",
       headers: {
         apikey: cfg.key,
-        Authorization: `Bearer ${cfg.key}`,
         "Content-Type": "application/json",
-        Prefer: "return=minimal",
       },
       body: JSON.stringify(buildPayload(values)),
     });
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new Error(data.message || data.error || "La demande n'a pas pu être envoyée.");
+      const messages = {
+        verification_failed: "La vérification anti-robot a expiré ou a échoué. Recommencez-la.",
+        rate_limited: "Une demande vient déjà d'être envoyée avec cet e-mail. Patientez deux minutes.",
+        invalid_submission: "Vérifiez les informations du formulaire avant de réessayer.",
+      };
+      throw new Error(messages[data.error] || "La demande n'a pas pu être envoyée.");
     }
   }
 
@@ -162,8 +217,10 @@
     try {
       await submitOrderRequest(values);
       form.reset();
+      resetTurnstile();
       setFeedback("Demande envoyée. Je reviens vers vous par e-mail pour confirmer les possibilités.", false);
     } catch (err) {
+      resetTurnstile();
       setFeedback(err && err.message ? err.message : "La demande n'a pas pu être envoyée.", true);
     } finally {
       if (submitButton) submitButton.disabled = false;
@@ -173,5 +230,6 @@
   window.BLOrderRequest = {
     validateOrderRequest,
     buildPayload,
+    renderTurnstile,
   };
 })();

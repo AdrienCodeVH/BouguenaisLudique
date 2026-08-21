@@ -998,7 +998,22 @@ a {
 }
 
 .order-request-form {
+  position: relative;
   margin-top: 0.6rem;
+}
+
+.form-field--honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.turnstile-field {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
 }
 
 .order-request-grid {

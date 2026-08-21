@@ -23,7 +23,8 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
   - admin : lien Admin supplementaire.
 - Parcours de commande initial :
   - le visiteur exprime son besoin via le formulaire de demande ;
-  - la demande est stockee dans `order_requests` si Supabase est configure ;
+  - Turnstile vérifie le visiteur et une Edge Function valide les champs côté serveur ;
+  - la demande est ensuite stockée dans `order_requests` sans autoriser d'insertion publique directe ;
   - une Edge Function peut notifier l'administrateur par e-mail via Resend ;
   - la disponibilite, le prix et le retrait sont confirmes manuellement ;
   - le catalogue public complet sera ouvert quand les premieres commandes auront permis de prioriser l'offre.
@@ -106,6 +107,7 @@ catalogue public ouvert et les liens HTML locaux.
 ```js
 window.BL_SUPABASE_URL = "https://VOTRE_PROJET.supabase.co";
 window.BL_SUPABASE_ANON_KEY = "VOTRE_CLE_PUBLISHABLE_OU_ANON";
+window.BL_TURNSTILE_SITE_KEY = "VOTRE_CLE_SITE_TURNSTILE";
 ```
 
 4. Ne jamais utiliser de cle `sb_secret_` dans le front.
@@ -120,13 +122,22 @@ La fonction `supabase/functions/notify-order-request/index.ts` envoie une notifi
 La configuration repose sur :
 
 - une Edge Function Supabase déployée sans vérification JWT de passerelle ;
-- `withSupabase({ auth: "secret" })` pour n'accepter que le webhook authentifié ;
+- `withSupabase({ auth: "secret:*" })` pour n'accepter que le webhook authentifié ;
 - les secrets `RESEND_API_KEY` et `ORDER_NOTIFICATION_TO` stockés dans Supabase ;
 - un Database Webhook sur l'événement `INSERT` de `public.order_requests`.
 
 Les instructions de déploiement sont détaillées dans
 `supabase/functions/notify-order-request/README.md`. Aucune clé Resend ne doit être
 placée dans le dépôt ou dans le JavaScript public.
+
+## Protection anti-spam
+
+Le navigateur envoie les demandes à
+`supabase/functions/submit-order-request/index.ts`. Cette fonction vérifie le
+jeton Cloudflare Turnstile, l'action et le hostname avant d'insérer la ligne avec
+le client serveur. La policy d'insertion publique est supprimée par
+`supabase/secure_order_requests.sql`, ce qui empêche de contourner la protection
+en appelant directement l'API REST.
 
 ## Initialisation d'un compte admin
 

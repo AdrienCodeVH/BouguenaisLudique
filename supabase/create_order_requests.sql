@@ -29,13 +29,8 @@ create table if not exists public.order_requests (
 alter table public.order_requests enable row level security;
 
 drop policy if exists "order_requests_insert_public" on public.order_requests;
-create policy "order_requests_insert_public"
-  on public.order_requests for insert
-  with check (
-    status = 'new'
-    and confirmed_order_count = 0
-    and admin_notes is null
-  );
+-- Les insertions publiques passent exclusivement par l'Edge Function
+-- submit-order-request, après validation Turnstile côté serveur.
 
 drop policy if exists "order_requests_admin_manage" on public.order_requests;
 create policy "order_requests_admin_manage"
