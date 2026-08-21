@@ -85,6 +85,7 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
             "budget_eur",
             "details",
             "pickup_notes",
+            "company_website",
             "consent",
         }
         self.assertTrue(expected_fields.issubset(fields.keys()))
@@ -106,6 +107,10 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertEqual(fields["pickup_notes"].get("maxlength"), "220")
         self.assertEqual(fields["consent"].get("type"), "checkbox")
         self.assertEqual(fields["consent"].get("required"), None)
+        self.assertEqual(fields["company_website"].get("tabindex"), "-1")
+
+        self.assertIn('id="order-request-turnstile"', page)
+        self.assertIn("challenges.cloudflare.com/turnstile/v0/api.js", page)
 
     def test_order_request_script_validates_and_submits_to_supabase(self):
         script = read_page("assets/js/order-request.js")
@@ -114,9 +119,12 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("allowedCategories", script)
         self.assertIn("setCustomValidity", script)
         self.assertIn("reportValidity", script)
-        self.assertIn("/rest/v1/order_requests", script)
+        self.assertIn("/functions/v1/submit-order-request", script)
         self.assertIn('method: "POST"', script)
-        self.assertIn('Prefer: "return=minimal"', script)
+        self.assertIn("turnstile_token", script)
+        self.assertIn("company_website", script)
+        self.assertIn("window.turnstile.reset", script)
+        self.assertNotIn("/rest/v1/order_requests", script)
         self.assertIn("window.BLOrderRequest", script)
 
     def test_order_requests_schema_and_policies_exist(self):
@@ -130,9 +138,8 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("budget_eur numeric(10,2) check", schema)
         self.assertIn("status text not null default 'new'", schema)
         self.assertIn("alter table public.order_requests enable row level security", schema)
-        self.assertIn('create policy "order_requests_insert_public"', schema)
-        self.assertIn("status = 'new'", schema)
-        self.assertIn("and admin_notes is null", schema)
+        self.assertIn('drop policy if exists "order_requests_insert_public"', schema)
+        self.assertNotIn('create policy "order_requests_insert_public"', schema)
         self.assertIn('create policy "order_requests_admin_manage"', schema)
 
     def test_profiles_rls_uses_non_recursive_role_helpers(self):
@@ -159,11 +166,26 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
 
         self.assertIn("create table if not exists public.order_requests", migration)
         self.assertIn("alter table public.order_requests enable row level security", migration)
-        self.assertIn('create policy "order_requests_insert_public"', migration)
+        self.assertIn('drop policy if exists "order_requests_insert_public"', migration)
+        self.assertNotIn('create policy "order_requests_insert_public"', migration)
         self.assertIn('create policy "order_requests_admin_manage"', migration)
         self.assertIn("create or replace function public.sync_project_barometer_from_user_orders()", migration)
         self.assertIn("create trigger sync_project_barometer_after_order_requests", migration)
         self.assertIn("notify pgrst, 'reload schema'", migration)
+
+    def test_order_request_submission_is_protected_server_side(self):
+        function = read_page("supabase/functions/submit-order-request/index.ts")
+        migration = read_page("supabase/secure_order_requests.sql")
+
+        self.assertIn('withSupabase<Database>(', function)
+        self.assertIn('auth: "publishable:*"', function)
+        self.assertIn('Deno.env.get("TURNSTILE_SECRET_KEY")', function)
+        self.assertIn("challenges.cloudflare.com/turnstile/v0/siteverify", function)
+        self.assertIn('result.action === TURNSTILE_ACTION', function)
+        self.assertIn("allowedHostnames.has", function)
+        self.assertIn('.from("order_requests")', function)
+        self.assertIn("DUPLICATE_WINDOW_MS", function)
+        self.assertIn('drop policy if exists "order_requests_insert_public"', migration)
 
     def test_order_request_notification_function_is_secret_and_escapes_html(self):
         function = read_page("supabase/functions/notify-order-request/index.ts")

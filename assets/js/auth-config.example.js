@@ -11,3 +11,6 @@
 window.BL_SUPABASE_URL = "https://VOTRE_PROJECT.supabase.co";
 window.BL_SUPABASE_ANON_KEY =
   "sb_publishable_vjhOKFgP-KUAzALnNJkD0A_6v22uAG9";
+
+/** Clé de site Turnstile : publique et autorisée dans le navigateur. */
+window.BL_TURNSTILE_SITE_KEY = "VOTRE_CLE_SITE_TURNSTILE";

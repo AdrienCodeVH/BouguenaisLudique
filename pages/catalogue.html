@@ -214,6 +214,22 @@
               />
             </div>
 
+            <div class="form-field form-field--honeypot" aria-hidden="true">
+              <label for="order-request-company-website">Site web de l'entreprise</label>
+              <input
+                id="order-request-company-website"
+                name="company_website"
+                type="text"
+                tabindex="-1"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="turnstile-field">
+              <div id="order-request-turnstile"></div>
+              <span class="form-hint">Cette vérification protège le formulaire contre les robots.</span>
+            </div>
+
             <label class="form-check">
               <input id="order-request-consent" name="consent" type="checkbox" required />
               <span>J'accepte d'être recontacté par e-mail au sujet de cette demande.</span>
@@ -222,8 +238,6 @@
             <button type="submit" class="btn auth-form-submit">Envoyer la demande</button>
             <p id="order-request-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
           </form>
-        </div>
-      </section>
         </div>
       </section>
     </main>
@@ -238,6 +252,10 @@
     <script src="../assets/js/auth-api.js"></script>
     <script src="../assets/js/auth-ui.js"></script>
     <script src="../assets/js/order-request.js"></script>
+    <script
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=blTurnstileReady&amp;render=explicit"
+      defer
+    ></script>
     <script src="../assets/js/script.js"></script>
   </body>
 </html>
