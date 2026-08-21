@@ -135,6 +135,36 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("and admin_notes is null", schema)
         self.assertIn('create policy "order_requests_admin_manage"', schema)
 
+    def test_profiles_rls_uses_non_recursive_role_helpers(self):
+        schema = read_page("supabase/schema.sql")
+        migration = read_page("supabase/fix_rls_recursion.sql")
+
+        for sql in (schema, migration):
+            self.assertIn("create or replace function public.bl_current_user_role()", sql)
+            self.assertIn("create or replace function public.bl_is_admin()", sql)
+            self.assertIn("security definer", sql)
+            self.assertIn("set search_path = ''", sql)
+            self.assertIn("or public.bl_is_admin()", sql)
+            self.assertIn("using (public.bl_is_admin())", sql)
+            self.assertIn("and role = public.bl_current_user_role()", sql)
+
+        recursive_self_lookup = """and role = (
+      select old.role
+      from public.profiles old"""
+        self.assertNotIn(recursive_self_lookup, schema)
+        self.assertNotIn(recursive_self_lookup, migration)
+
+    def test_order_requests_recovery_migration_is_complete(self):
+        migration = read_page("supabase/create_order_requests.sql")
+
+        self.assertIn("create table if not exists public.order_requests", migration)
+        self.assertIn("alter table public.order_requests enable row level security", migration)
+        self.assertIn('create policy "order_requests_insert_public"', migration)
+        self.assertIn('create policy "order_requests_admin_manage"', migration)
+        self.assertIn("create or replace function public.sync_project_barometer_from_user_orders()", migration)
+        self.assertIn("create trigger sync_project_barometer_after_order_requests", migration)
+        self.assertIn("notify pgrst, 'reload schema'", migration)
+
     def test_admin_hub_links_to_order_requests_followup(self):
         page = read_page("pages/admin.html")
 
