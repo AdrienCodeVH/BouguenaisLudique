@@ -24,8 +24,10 @@ supabase functions deploy notify-order-request --no-verify-jwt
 ```
 
 La vérification JWT de la passerelle est désactivée parce que la fonction utilise
-`withSupabase({ auth: "secret" })`. Seul un appel portant la clé secrète du projet
-est accepté.
+`withSupabase({ auth: "secret:*" })`. Le format `Authorization: Bearer ...` ajouté
+par Database Webhooks est normalisé vers l'en-tête `apikey` attendu par le
+wrapper, qui vérifie ensuite que la valeur appartient bien aux clés secrètes du
+projet. Les appels publics ou anonymes restent refusés.
 
 ## Webhook Supabase
 
