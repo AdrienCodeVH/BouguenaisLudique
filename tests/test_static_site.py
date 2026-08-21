@@ -231,6 +231,13 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn('id="admin-requests-section"', page)
         self.assertIn('id="admin-requests-feedback"', page)
         self.assertIn('id="admin-requests-body"', page)
+        self.assertIn('id="admin-request-search"', page)
+        self.assertIn('id="admin-request-status-filter"', page)
+        self.assertIn('id="admin-request-reset"', page)
+        self.assertIn('id="admin-request-results-meta"', page)
+        self.assertIn('id="admin-request-count-new"', page)
+        self.assertIn('id="admin-request-count-progress"', page)
+        self.assertIn('class="admin-table admin-request-table"', page)
         self.assertIn("Notes admin", page)
         self.assertIn("Statut", page)
         self.assertIn('src="../assets/js/admin.js"', page)
@@ -240,6 +247,9 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
 
         self.assertIn("hasRequestsModule", script)
         self.assertIn("function renderOrderRequests(rows)", script)
+        self.assertIn("function filterOrderRequests(rows)", script)
+        self.assertIn("function applyOrderRequestFilters()", script)
+        self.assertIn("function updateOrderRequestSummary(rows)", script)
         self.assertIn("async function loadOrderRequests()", script)
         self.assertIn("async function handleOrderRequestsClick(event)", script)
         self.assertIn("/rest/v1/order_requests?select=", script)
@@ -248,6 +258,21 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("escapeHtml(row.details)", script)
         self.assertIn("data-order-request-status", script)
         self.assertIn("data-order-request-notes", script)
+        self.assertIn("admin-request-status-badge", script)
+        self.assertIn("admin-request-reply", script)
+        self.assertIn('requestsSearch?.addEventListener("input"', script)
+        self.assertIn('requestsStatusFilter?.addEventListener("change"', script)
+        self.assertIn("currentOrderRequests", script)
+
+    def test_admin_order_requests_layout_is_responsive(self):
+        styles = read_page("assets/css/style.css")
+
+        self.assertIn(".admin-request-summary", styles)
+        self.assertIn(".admin-request-toolbar", styles)
+        self.assertIn(".admin-request-status-badge--new", styles)
+        self.assertIn(".admin-request-status-badge--validated", styles)
+        self.assertIn(".admin-request-table td::before", styles)
+        self.assertIn("content: attr(data-label)", styles)
 
     def test_homepage_points_to_order_flow(self):
         page = read_page("index.html")

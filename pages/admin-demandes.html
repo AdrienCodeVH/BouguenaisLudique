@@ -13,6 +13,7 @@
         gap: 1.25rem;
       }
       .admin-card {
+        min-width: 0;
         border: 1px solid rgba(0, 0, 0, 0.08);
         border-radius: 1rem;
         padding: 1rem;
@@ -39,23 +40,6 @@
         color: #1e40af;
         text-decoration: underline;
         text-underline-offset: 2px;
-      }
-      .admin-request-details {
-        min-width: 220px;
-      }
-      .admin-request-notes {
-        min-width: 220px;
-      }
-      .admin-request-notes textarea {
-        width: 100%;
-        min-height: 92px;
-        resize: vertical;
-      }
-      .admin-request-status {
-        min-width: 150px;
-      }
-      .admin-request-count {
-        width: 6.5rem;
       }
     </style>
   </head>
@@ -89,10 +73,67 @@
         <div class="container admin-layout">
           <p id="admin-status" class="form-feedback" role="status" aria-live="polite" hidden></p>
           <article class="admin-card" id="admin-requests-section" hidden>
-            <h2>Suivi des demandes</h2>
+            <div class="admin-request-heading">
+              <div>
+                <p class="eyebrow">Boîte de réception</p>
+                <h2>Suivi des demandes</h2>
+              </div>
+              <p class="admin-request-heading-copy">
+                Priorise les nouvelles demandes, retrouve un client et conserve l'historique du traitement.
+              </p>
+            </div>
+
+            <div class="admin-request-summary" aria-label="Résumé des demandes">
+              <article class="admin-request-stat">
+                <span>Toutes</span>
+                <strong id="admin-request-count-all">0</strong>
+              </article>
+              <article class="admin-request-stat admin-request-stat--new">
+                <span>Nouvelles</span>
+                <strong id="admin-request-count-new">0</strong>
+              </article>
+              <article class="admin-request-stat admin-request-stat--progress">
+                <span>En cours</span>
+                <strong id="admin-request-count-progress">0</strong>
+              </article>
+              <article class="admin-request-stat admin-request-stat--confirmed">
+                <span>Validées ou terminées</span>
+                <strong id="admin-request-count-confirmed">0</strong>
+              </article>
+            </div>
+
+            <div class="admin-request-toolbar" role="search" aria-label="Filtrer les demandes">
+              <div class="form-field admin-request-search-field">
+                <label for="admin-request-search">Rechercher</label>
+                <input
+                  id="admin-request-search"
+                  type="search"
+                  autocomplete="off"
+                  placeholder="Nom, e-mail, jeu ou détail…"
+                />
+              </div>
+              <div class="form-field admin-request-status-field">
+                <label for="admin-request-status-filter">Statut</label>
+                <select id="admin-request-status-filter">
+                  <option value="all">Tous les statuts</option>
+                  <option value="new">Nouvelles</option>
+                  <option value="in_progress">En cours</option>
+                  <option value="validated">Validées</option>
+                  <option value="declined">Refusées</option>
+                  <option value="completed">Terminées</option>
+                </select>
+              </div>
+              <button id="admin-request-reset" class="btn btn-secondary" type="button">
+                Effacer les filtres
+              </button>
+            </div>
+
+            <p id="admin-request-results-meta" class="admin-request-results-meta" aria-live="polite">
+              Chargement des demandes…
+            </p>
             <p id="admin-requests-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
             <div class="admin-table-wrap">
-              <table class="admin-table">
+              <table class="admin-table admin-request-table">
                 <thead>
                   <tr>
                     <th>Date</th>

@@ -34,6 +34,14 @@
   const requestsSection = document.getElementById("admin-requests-section");
   const requestsBody = document.getElementById("admin-requests-body");
   const requestsFeedback = document.getElementById("admin-requests-feedback");
+  const requestsSearch = document.getElementById("admin-request-search");
+  const requestsStatusFilter = document.getElementById("admin-request-status-filter");
+  const requestsReset = document.getElementById("admin-request-reset");
+  const requestsResultsMeta = document.getElementById("admin-request-results-meta");
+  const requestsCountAll = document.getElementById("admin-request-count-all");
+  const requestsCountNew = document.getElementById("admin-request-count-new");
+  const requestsCountProgress = document.getElementById("admin-request-count-progress");
+  const requestsCountConfirmed = document.getElementById("admin-request-count-confirmed");
   const hasAccountsModule = Boolean(accountsSection && accountsBody);
   const hasBarometerModule = Boolean(barometerSection && barometerForm);
   const hasProductsModule = Boolean(productsSection && productsBody && productForm);
@@ -46,10 +54,18 @@
     ["declined", "Refusée"],
     ["completed", "Terminée"],
   ];
+  const requestCategoryLabels = {
+    tcg: "Jeux de cartes à collectionner",
+    "jeux-societe": "Jeux de société",
+    "classiques-puzzle-echecs": "Classiques, puzzle et échecs",
+    "idee-cadeau": "Idée cadeau / conseil",
+    autre: "Autre demande",
+  };
   let accessToken = "";
   let currentUserId = "";
   let currentOrdersValue = 0;
   let supportsAdvancedProductFields = true;
+  let currentOrderRequests = [];
 
   function setStatus(message, isError) {
     if (!statusNode) return;
@@ -88,6 +104,77 @@
     return requestStatuses
       .map(([value, label]) => `<option value="${value}"${value === currentStatus ? " selected" : ""}>${label}</option>`)
       .join("");
+  }
+
+  function getRequestStatusLabel(status) {
+    return requestStatuses.find(([value]) => value === status)?.[1] || "Nouvelle";
+  }
+
+  function normalizeRequestSearch(value) {
+    return String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  function updateOrderRequestSummary(rows) {
+    const totals = rows.reduce(
+      (summary, row) => {
+        summary.all += 1;
+        if (row.status === "new") summary.new += 1;
+        if (row.status === "in_progress") summary.progress += 1;
+        if (row.status === "validated" || row.status === "completed") summary.confirmed += 1;
+        return summary;
+      },
+      { all: 0, new: 0, progress: 0, confirmed: 0 }
+    );
+
+    if (requestsCountAll) requestsCountAll.textContent = String(totals.all);
+    if (requestsCountNew) requestsCountNew.textContent = String(totals.new);
+    if (requestsCountProgress) requestsCountProgress.textContent = String(totals.progress);
+    if (requestsCountConfirmed) requestsCountConfirmed.textContent = String(totals.confirmed);
+  }
+
+  function filterOrderRequests(rows) {
+    const search = normalizeRequestSearch(
+      requestsSearch instanceof HTMLInputElement ? requestsSearch.value : ""
+    );
+    const selectedStatus =
+      requestsStatusFilter instanceof HTMLSelectElement ? requestsStatusFilter.value : "all";
+
+    return rows.filter((row) => {
+      if (selectedStatus !== "all" && row.status !== selectedStatus) return false;
+      if (!search) return true;
+
+      const searchableText = normalizeRequestSearch(
+        [
+          row.customer_name,
+          row.customer_email,
+          row.category,
+          requestCategoryLabels[row.category],
+          row.product_name,
+          row.details,
+          row.pickup_notes,
+          row.admin_notes,
+          getRequestStatusLabel(row.status),
+        ].join(" ")
+      );
+      return searchableText.includes(search);
+    });
+  }
+
+  function applyOrderRequestFilters() {
+    const filteredRows = filterOrderRequests(currentOrderRequests);
+    renderOrderRequests(filteredRows);
+    if (!requestsResultsMeta) return;
+
+    if (!currentOrderRequests.length) {
+      requestsResultsMeta.textContent = "Aucune demande reçue pour le moment.";
+      return;
+    }
+    const suffix = filteredRows.length === 1 ? "" : "s";
+    requestsResultsMeta.textContent = `${filteredRows.length} demande${suffix} affichée${suffix} sur ${currentOrderRequests.length}.`;
   }
 
   function getSupabaseConfig() {
@@ -186,63 +273,80 @@
     if (!requestsBody) return;
     if (!rows.length) {
       requestsBody.innerHTML =
-        '<tr><td colspan="8" class="admin-empty">Aucune demande de commande pour le moment.</td></tr>';
+        `<tr><td colspan="8" class="admin-empty">${
+          currentOrderRequests.length
+            ? "Aucune demande ne correspond aux filtres."
+            : "Aucune demande de commande pour le moment."
+        }</td></tr>`;
       return;
     }
 
     requestsBody.innerHTML = rows
       .map((row) => {
+        const requestId = escapeHtml(row.id);
+        const safeStatus = requestStatuses.some(([value]) => value === row.status) ? row.status : "new";
+        const statusLabel = getRequestStatusLabel(safeStatus);
         const mailSubject = encodeURIComponent(`Demande Bouguenais Ludique - ${row.product_name || "commande"}`);
         const mailBody = encodeURIComponent(
           `Bonjour ${row.customer_name || ""},
 
 Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
 
+Je vous confirme les possibilités, le prix et le délai dès que possible.
+
+Bien cordialement,
+Bouguenais Ludique
 `
         );
         const mailHref = `mailto:${encodeURIComponent(row.customer_email || "")}?subject=${mailSubject}&body=${mailBody}`;
         const playerAge = Number.isFinite(Number(row.player_age)) ? `${Number(row.player_age)} ans` : "-";
         const budget = Number.isFinite(Number(row.budget_eur)) ? `${Number(row.budget_eur).toFixed(2)} EUR` : "-";
+        const categoryLabel = requestCategoryLabels[row.category] || row.category || "-";
         const confirmedOrderCount = Number.isFinite(Number(row.confirmed_order_count))
           ? Math.max(0, Number(row.confirmed_order_count))
           : 0;
         return `
-          <tr data-order-request-row="${row.id}">
-            <td>${formatDateTime(row.created_at)}</td>
-            <td>
+          <tr data-order-request-row="${requestId}">
+            <td data-label="Reçue le">
+              <time datetime="${escapeHtml(row.created_at || "")}">${formatDateTime(row.created_at)}</time>
+            </td>
+            <td data-label="Demandeur">
               <strong>${escapeHtml(row.customer_name)}</strong><br />
               <a class="admin-media-link" href="${mailHref}">${escapeHtml(row.customer_email)}</a>
             </td>
-            <td>
+            <td data-label="Demande">
               <strong>${escapeHtml(row.product_name)}</strong><br />
-              <span>${escapeHtml(row.category)}</span><br />
+              <span>${escapeHtml(categoryLabel)}</span><br />
               <small>Âge : ${escapeHtml(playerAge)} · Budget : ${escapeHtml(budget)}</small>
             </td>
-            <td class="admin-request-details">
+            <td class="admin-request-details" data-label="Détails">
               ${escapeHtml(row.details)}
               ${row.pickup_notes ? `<br /><small>Retrait : ${escapeHtml(row.pickup_notes)}</small>` : ""}
             </td>
-            <td>
-              <select class="admin-request-status" data-order-request-status data-order-request-id="${row.id}">
-                ${renderRequestStatusOptions(row.status || "new")}
+            <td data-label="Statut">
+              <span class="admin-request-status-badge admin-request-status-badge--${safeStatus}">${statusLabel}</span>
+              <select class="admin-request-status" aria-label="Statut de ${escapeHtml(row.product_name)}" data-order-request-status data-order-request-id="${requestId}">
+                ${renderRequestStatusOptions(safeStatus)}
               </select>
             </td>
-            <td>
+            <td data-label="Commandes comptées">
               <input
                 class="admin-request-count"
                 type="number"
                 min="0"
                 step="1"
                 value="${confirmedOrderCount}"
+                aria-label="Commandes comptées pour ${escapeHtml(row.product_name)}"
                 data-order-request-count
-                data-order-request-id="${row.id}"
+                data-order-request-id="${requestId}"
               />
             </td>
-            <td class="admin-request-notes">
-              <textarea maxlength="1000" data-order-request-notes data-order-request-id="${row.id}">${escapeHtml(row.admin_notes || "")}</textarea>
+            <td class="admin-request-notes" data-label="Notes admin">
+              <textarea aria-label="Notes admin pour ${escapeHtml(row.product_name)}" maxlength="1000" data-order-request-notes data-order-request-id="${requestId}">${escapeHtml(row.admin_notes || "")}</textarea>
             </td>
-            <td>
-              <button class="btn" type="button" data-order-request-save data-order-request-id="${row.id}">Enregistrer</button>
+            <td class="admin-request-actions" data-label="Actions">
+              <a class="btn btn-secondary admin-request-reply" href="${mailHref}">Répondre</a>
+              <button class="btn" type="button" data-order-request-save data-order-request-id="${requestId}">Enregistrer</button>
             </td>
           </tr>
         `;
@@ -450,7 +554,9 @@ Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
       "/rest/v1/order_requests?select=id,customer_name,customer_email,category,product_name,player_age,budget_eur,details,pickup_notes,status,confirmed_order_count,admin_notes,created_at,updated_at&order=created_at.desc"
     );
     const rows = await res.json();
-    renderOrderRequests(rows);
+    currentOrderRequests = Array.isArray(rows) ? rows : [];
+    updateOrderRequestSummary(currentOrderRequests);
+    applyOrderRequestFilters();
   }
 
   async function loadProducts() {
@@ -799,6 +905,11 @@ Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
       return;
     }
 
+    const originalButtonLabel = saveButton.textContent;
+    if (saveButton instanceof HTMLButtonElement) {
+      saveButton.disabled = true;
+      saveButton.textContent = "Enregistrement…";
+    }
     try {
       await apiFetch(`/rest/v1/order_requests?id=eq.${encodeURIComponent(requestId)}`, {
         method: "PATCH",
@@ -814,6 +925,11 @@ Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
       await loadOrderRequests();
     } catch (err) {
       setFeedback(requestsFeedback, err.message || "Impossible de mettre à jour la demande.", true);
+    } finally {
+      if (saveButton instanceof HTMLButtonElement && saveButton.isConnected) {
+        saveButton.disabled = false;
+        saveButton.textContent = originalButtonLabel;
+      }
     }
   }
 
@@ -1002,6 +1118,14 @@ Je reviens vers vous au sujet de votre demande : ${row.product_name || ""}.
     }
     if (hasRequestsModule) {
       requestsBody?.addEventListener("click", handleOrderRequestsClick);
+      requestsSearch?.addEventListener("input", applyOrderRequestFilters);
+      requestsStatusFilter?.addEventListener("change", applyOrderRequestFilters);
+      requestsReset?.addEventListener("click", () => {
+        if (requestsSearch instanceof HTMLInputElement) requestsSearch.value = "";
+        if (requestsStatusFilter instanceof HTMLSelectElement) requestsStatusFilter.value = "all";
+        applyOrderRequestFilters();
+        requestsSearch?.focus();
+      });
     }
     if (hasBarometerModule) {
       thresholdsBody?.addEventListener("click", handleThresholdsClick);
