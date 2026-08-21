@@ -169,9 +169,40 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn('drop policy if exists "order_requests_insert_public"', migration)
         self.assertNotIn('create policy "order_requests_insert_public"', migration)
         self.assertIn('create policy "order_requests_admin_manage"', migration)
-        self.assertIn("create or replace function public.sync_project_barometer_from_user_orders()", migration)
+        self.assertIn("create or replace function public.sync_project_barometer_from_confirmed_requests()", migration)
+        self.assertNotIn("sum(order_count) from public.user_orders", migration)
         self.assertIn("create trigger sync_project_barometer_after_order_requests", migration)
         self.assertIn("notify pgrst, 'reload schema'", migration)
+
+    def test_customer_order_history_migration_is_secure_and_preserves_legacy_rows(self):
+        schema = read_page("supabase/schema.sql")
+        migration = read_page("supabase/secure_customer_order_history.sql")
+
+        for sql in (schema, migration):
+            self.assertIn("linked_user_id uuid", sql)
+            self.assertIn("create or replace function public.bl_link_order_request_user()", sql)
+            self.assertIn("create or replace function public.bl_customer_order_history()", sql)
+            self.assertIn("o.linked_user_id = (select auth.uid())", sql)
+            self.assertIn("revoke all on function public.bl_customer_order_history() from public, anon", sql)
+            self.assertIn("grant execute on function public.bl_customer_order_history() to authenticated", sql)
+            self.assertIn('drop policy if exists "user_orders_insert_self_or_admin"', sql)
+            self.assertNotIn('create policy "user_orders_insert_self_or_admin"', sql)
+            self.assertNotIn('create policy "user_barometer_progress_insert_self_or_admin"', sql)
+            self.assertNotIn('create policy "user_barometer_progress_update_self_or_admin"', sql)
+            self.assertIn("create policy \"user_barometer_progress_admin_write\"", sql)
+
+        self.assertNotIn("drop table public.user_orders", migration.lower())
+        self.assertIn("update public.order_requests o", migration)
+        self.assertIn("update public.order_requests\n  set linked_user_id = new.id", migration)
+
+    def test_global_barometer_uses_only_admin_confirmed_requests(self):
+        schema = read_page("supabase/schema.sql")
+        migration = read_page("supabase/secure_customer_order_history.sql")
+
+        for sql in (schema, migration):
+            self.assertIn("sync_project_barometer_from_confirmed_requests", sql)
+            self.assertIn("where o.status in ('validated', 'completed')", sql)
+            self.assertNotIn("sum(order_count) from public.user_orders", sql)
 
     def test_order_request_submission_is_protected_server_side(self):
         function = read_page("supabase/functions/submit-order-request/index.ts")
@@ -259,6 +290,8 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("data-order-request-status", script)
         self.assertIn("data-order-request-notes", script)
         self.assertIn("admin-request-status-badge", script)
+        self.assertIn("admin-request-account--", script)
+        self.assertIn("linked_user_id", script)
         self.assertIn("admin-request-reply", script)
         self.assertIn('requestsSearch?.addEventListener("input"', script)
         self.assertIn('requestsStatusFilter?.addEventListener("change"', script)
@@ -273,6 +306,24 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn(".admin-request-status-badge--validated", styles)
         self.assertIn(".admin-request-table td::before", styles)
         self.assertIn("content: attr(data-label)", styles)
+
+    def test_customer_space_is_a_read_only_order_history(self):
+        page = read_page("pages/mon-espace.html")
+        script = read_page("assets/js/mon-espace.js")
+
+        self.assertIn("Mes commandes", page)
+        self.assertIn('id="space-orders-body"', page)
+        self.assertIn('id="space-orders-meta"', page)
+        self.assertIn("Seules les quantités validées", page)
+        self.assertNotIn('id="space-order-form"', page)
+        self.assertNotIn("Ajouter des commandes", page)
+
+        self.assertIn("/rest/v1/rpc/bl_customer_order_history", script)
+        self.assertIn("function renderOrders(rows)", script)
+        self.assertIn("confirmed_order_count", script)
+        self.assertNotIn("/rest/v1/user_orders", script)
+        self.assertNotIn("/rest/v1/user_barometer_progress", script)
+        self.assertNotIn("function handleSubmit", script)
 
     def test_homepage_points_to_order_flow(self):
         page = read_page("index.html")

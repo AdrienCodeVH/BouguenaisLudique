@@ -1,21 +1,31 @@
 (function () {
   const statusNode = document.getElementById("space-status");
-  const form = document.getElementById("space-order-form");
-  const feedbackNode = document.getElementById("space-order-feedback");
-  const templateSelect = document.getElementById("space-order-template");
-  const userBarometersGrid = document.getElementById("space-user-barometers-grid");
+  const ordersBody = document.getElementById("space-orders-body");
+  const ordersMeta = document.getElementById("space-orders-meta");
   const globalCountNode = document.getElementById("space-global-count");
   const personalCountNode = document.getElementById("space-personal-count");
   const globalFillNode = document.getElementById("space-global-fill");
   const personalFillNode = document.getElementById("space-personal-fill");
 
+  const statusLabels = {
+    new: "Nouvelle",
+    in_progress: "En cours",
+    validated: "Validée",
+    declined: "Refusée",
+    completed: "Terminée",
+  };
+  const categoryLabels = {
+    tcg: "Jeux de cartes à collectionner",
+    "jeux-societe": "Jeux de société",
+    "classiques-puzzle-echecs": "Classiques, puzzle et échecs",
+    "idee-cadeau": "Idée cadeau / conseil",
+    autre: "Autre demande",
+  };
+
   let accessToken = "";
-  let userId = "";
   let globalTarget = 0;
   let globalCurrent = 0;
   let personalCurrent = 0;
-  let userTemplates = [];
-  let userProgressByTemplateId = {};
 
   function setStatus(message, isError) {
     if (!statusNode) return;
@@ -24,11 +34,24 @@
     statusNode.hidden = !message;
   }
 
-  function setFeedback(message, isError) {
-    if (!feedbackNode) return;
-    feedbackNode.textContent = message;
-    feedbackNode.classList.toggle("form-feedback--error", Boolean(isError));
-    feedbackNode.hidden = !message;
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function formatDate(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   }
 
   function setFill(fillNode, value) {
@@ -49,98 +72,40 @@
     setFill(personalFillNode, (personalCurrent / target) * 100);
   }
 
-  function renderTemplateSelect() {
-    if (!(templateSelect instanceof HTMLSelectElement)) return;
-    if (!userTemplates.length) {
-      templateSelect.innerHTML = '<option value="" selected>Aucun baromètre disponible</option>';
-      templateSelect.disabled = true;
+  function renderOrders(rows) {
+    if (!ordersBody) return;
+    if (!rows.length) {
+      ordersBody.innerHTML =
+        '<tr><td colspan="5" class="admin-empty">Aucune demande liée à ce compte pour le moment.</td></tr>';
+      if (ordersMeta) ordersMeta.textContent = "Aucune demande retrouvée.";
       return;
     }
-    templateSelect.disabled = false;
-    templateSelect.innerHTML = ['<option value="" selected disabled>Choisir un baromètre</option>']
-      .concat(
-        userTemplates.map((tpl) => {
-          const modeLabel =
-            tpl.progression_mode === "one_time_unlock" ? "déblocage unique" : "reset auto";
-          return `<option value="${tpl.id}">${tpl.title} (${tpl.target_value} - ${modeLabel})</option>`;
-        })
-      )
-      .join("");
-  }
 
-  function renderUserBarometers() {
-    if (!userBarometersGrid) return;
-    if (!userTemplates.length) {
-      userBarometersGrid.innerHTML =
-        '<p class="admin-empty">Aucun baromètre utilisateur public configuré pour le moment.</p>';
-      return;
-    }
-    userBarometersGrid.innerHTML = userTemplates
-      .map((tpl) => {
-        const progressState = userProgressByTemplateId[tpl.id] || {};
-        const currentValue = Number(progressState.current_value || 0);
-        const completedCount = Number(progressState.completed_count || 0);
-        const unlockedAt = progressState.unlocked_at || null;
-        const target = Number(tpl.target_value) || 1;
-        const progress = Math.max(0, Math.min(100, (currentValue / target) * 100));
-        const modeLabel =
-          tpl.progression_mode === "one_time_unlock"
-            ? "Déblocage unique à vie"
-            : "Reset automatique";
-        const stateLabel =
-          tpl.progression_mode === "one_time_unlock"
-            ? unlockedAt
-              ? "Avantage débloqué"
-              : "En progression"
-            : `${completedCount} cycle(s) validé(s)`;
+    ordersBody.innerHTML = rows
+      .map((row) => {
+        const safeStatus = Object.hasOwn(statusLabels, row.status) ? row.status : "new";
+        const statusLabel = statusLabels[safeStatus];
+        const categoryLabel = categoryLabels[row.category] || row.category || "-";
+        const isConfirmed = safeStatus === "validated" || safeStatus === "completed";
+        const confirmedCount = isConfirmed
+          ? Math.max(0, Number(row.confirmed_order_count) || 0)
+          : null;
         return `
-          <article class="admin-visibility-card">
-            <h4>${tpl.title}</h4>
-            <p class="admin-empty">${tpl.description || "-"}</p>
-            <p class="admin-visibility-metric">${currentValue} / ${target}</p>
-            <div class="admin-visibility-track">
-              <div class="admin-visibility-fill" style="width:${progress}%"></div>
-            </div>
-            <p class="admin-empty"><strong>Mode :</strong> ${modeLabel}</p>
-            <p class="admin-empty"><strong>Statut :</strong> ${stateLabel}</p>
-            <p class="admin-empty"><strong>Récompense :</strong> ${tpl.reward_text}</p>
-          </article>
+          <tr>
+            <td data-label="Date"><time datetime="${escapeHtml(row.created_at || "")}">${formatDate(row.created_at)}</time></td>
+            <td data-label="Jeu ou produit"><strong>${escapeHtml(row.product_name || "-")}</strong></td>
+            <td data-label="Catégorie">${escapeHtml(categoryLabel)}</td>
+            <td data-label="Statut"><span class="admin-request-status-badge admin-request-status-badge--${safeStatus}">${statusLabel}</span></td>
+            <td data-label="Quantité validée">${confirmedCount === null ? "—" : escapeHtml(confirmedCount)}</td>
+          </tr>
         `;
       })
       .join("");
-  }
 
-  function computeNextProgress(template, currentState, orderCount) {
-    const target = Math.max(1, Number(template.target_value) || 1);
-    const mode = template.progression_mode || "repeatable_reset";
-    const currentValue = Number(currentState.current_value || 0);
-    const completedCount = Number(currentState.completed_count || 0);
-    const unlockedAt = currentState.unlocked_at || null;
-    const total = currentValue + orderCount;
-
-    if (mode === "one_time_unlock") {
-      const alreadyUnlocked = Boolean(unlockedAt) || currentValue >= target;
-      if (alreadyUnlocked) {
-        return {
-          current_value: target,
-          completed_count: Math.max(1, completedCount),
-          unlocked_at: unlockedAt || new Date().toISOString(),
-        };
-      }
-      const reached = total >= target;
-      return {
-        current_value: reached ? target : total,
-        completed_count: reached ? Math.max(1, completedCount) : completedCount,
-        unlocked_at: reached ? new Date().toISOString() : null,
-      };
+    if (ordersMeta) {
+      const suffix = rows.length === 1 ? "" : "s";
+      ordersMeta.textContent = `${rows.length} demande${suffix} liée${suffix} à ce compte.`;
     }
-
-    const achieved = Math.floor(total / target);
-    return {
-      current_value: total % target,
-      completed_count: completedCount + achieved,
-      unlocked_at: null,
-    };
   }
 
   function getConfig() {
@@ -178,126 +143,35 @@
     globalTarget = Number(rows[0].target_orders) || 0;
   }
 
-  async function loadPersonalOrders() {
-    const res = await apiFetch(
-      `/rest/v1/user_orders?select=order_count&user_id=eq.${encodeURIComponent(userId)}`
-    );
+  async function loadOrderHistory() {
+    const res = await apiFetch("/rest/v1/rpc/bl_customer_order_history", {
+      method: "POST",
+      body: "{}",
+    });
     const rows = await res.json();
-    personalCurrent = Array.isArray(rows)
-      ? rows.reduce((sum, row) => sum + (Number(row.order_count) || 0), 0)
-      : 0;
-  }
-
-  async function loadUserTemplatesAndProgress() {
-    const templatesRes = await apiFetch(
-      "/rest/v1/user_barometer_templates?select=id,title,description,target_value,progression_mode,reward_text,game_category,is_active&is_active=eq.true&order=created_at.desc"
-    );
-    userTemplates = await templatesRes.json();
-
-    const progressRes = await apiFetch(
-      `/rest/v1/user_barometer_progress?select=template_id,current_value,completed_count,unlocked_at&user_id=eq.${encodeURIComponent(userId)}`
-    );
-    const progressRows = await progressRes.json();
-    userProgressByTemplateId = {};
-    if (Array.isArray(progressRows)) {
-      progressRows.forEach((row) => {
-        userProgressByTemplateId[row.template_id] = {
-          current_value: Number(row.current_value) || 0,
-          completed_count: Number(row.completed_count) || 0,
-          unlocked_at: row.unlocked_at || null,
-        };
-      });
-    }
-
-    renderTemplateSelect();
-    renderUserBarometers();
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    if (!form) return;
-    const orderCount = Number(form.order_count.value);
-    const note = String(form.note.value || "").trim();
-    const templateId = Number(form.template_id.value);
-    if (!Number.isFinite(orderCount) || orderCount < 1) {
-      setFeedback("Nombre de commandes invalide.", true);
-      return;
-    }
-    if (!Number.isFinite(templateId) || templateId <= 0) {
-      setFeedback("Choisis un baromètre utilisateur.", true);
-      return;
-    }
-
-    try {
-      await apiFetch("/rest/v1/user_orders", {
-        method: "POST",
-        headers: { Prefer: "return=representation" },
-        body: JSON.stringify({
-          user_id: userId,
-          order_count: orderCount,
-          note: note || null,
-        }),
-      });
-
-      const template = userTemplates.find((tpl) => Number(tpl.id) === templateId);
-      if (!template) {
-        throw new Error("Baromètre utilisateur introuvable.");
-      }
-      const currentState = userProgressByTemplateId[templateId] || {
-        current_value: 0,
-        completed_count: 0,
-        unlocked_at: null,
-      };
-      const nextState = computeNextProgress(template, currentState, orderCount);
-      await apiFetch("/rest/v1/user_barometer_progress", {
-        method: "POST",
-        headers: {
-          Prefer: "resolution=merge-duplicates,return=representation",
-        },
-        body: JSON.stringify({
-          template_id: templateId,
-          user_id: userId,
-          current_value: nextState.current_value,
-          completed_count: nextState.completed_count,
-          unlocked_at: nextState.unlocked_at,
-          updated_at: new Date().toISOString(),
-        }),
-      });
-
-      form.reset();
-      setFeedback("Commande enregistrée.", false);
-      await Promise.all([loadPersonalOrders(), loadUserTemplatesAndProgress()]);
-      renderCounts();
-    } catch (err) {
-      setFeedback(err.message || "Impossible d'enregistrer la commande.", true);
-    }
+    const safeRows = Array.isArray(rows) ? rows : [];
+    personalCurrent = safeRows.reduce((total, row) => {
+      if (row.status !== "validated" && row.status !== "completed") return total;
+      return total + Math.max(0, Number(row.confirmed_order_count) || 0);
+    }, 0);
+    renderOrders(safeRows);
   }
 
   async function init() {
     const session = window.BLAuthUi?.getStoredSession?.();
     accessToken = session && session.access_token;
     if (!accessToken) {
-      setStatus("Connecte-toi pour accéder à ton espace.", true);
-      return;
-    }
-
-    const payload = window.BLAuthUi?.parseJwtPayload?.(accessToken);
-    userId = payload && payload.sub;
-    if (!userId) {
-      setStatus("Session invalide. Reconnecte-toi.", true);
+      setStatus("Connecte-toi pour accéder à ton historique.", true);
       return;
     }
 
     try {
-      await Promise.all([loadGlobalBarometer(), loadPersonalOrders(), loadUserTemplatesAndProgress()]);
+      await Promise.all([loadGlobalBarometer(), loadOrderHistory()]);
       renderCounts();
-      setStatus("Espace personnel chargé.", false);
+      setStatus("Historique sécurisé chargé.", false);
     } catch (err) {
-      setStatus(err.message || "Impossible de charger les baromètres.", true);
-      return;
+      setStatus(err.message || "Impossible de charger ton historique.", true);
     }
-
-    form?.addEventListener("submit", handleSubmit);
   }
 
   init();
