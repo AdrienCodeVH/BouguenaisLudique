@@ -21,12 +21,16 @@ create table if not exists public.order_requests (
   status text not null default 'new'
     check (status in ('new', 'in_progress', 'validated', 'declined', 'completed')),
   confirmed_order_count integer not null default 0 check (confirmed_order_count >= 0),
+  linked_user_id uuid references public.profiles(id) on delete set null,
   admin_notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.order_requests enable row level security;
+
+create index if not exists order_requests_linked_user_id_idx
+  on public.order_requests (linked_user_id);
 
 drop policy if exists "order_requests_insert_public" on public.order_requests;
 -- Les insertions publiques passent exclusivement par l'Edge Function
@@ -52,24 +56,19 @@ create policy "order_requests_admin_manage"
     )
   );
 
-create or replace function public.sync_project_barometer_from_user_orders()
+create or replace function public.sync_project_barometer_from_confirmed_requests()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   v_total integer;
 begin
-  select (
-    coalesce((select sum(order_count) from public.user_orders), 0)
-    + coalesce((
-      select sum(confirmed_order_count)
-      from public.order_requests
-      where status in ('validated', 'completed')
-    ), 0)
-  )::integer
-  into v_total;
+  select coalesce(sum(o.confirmed_order_count), 0)::integer
+  into v_total
+  from public.order_requests o
+  where o.status in ('validated', 'completed');
 
   update public.project_barometer
   set current_orders = v_total,
@@ -84,7 +83,16 @@ drop trigger if exists sync_project_barometer_after_order_requests on public.ord
 create trigger sync_project_barometer_after_order_requests
   after insert or update or delete on public.order_requests
   for each statement
-  execute function public.sync_project_barometer_from_user_orders();
+  execute function public.sync_project_barometer_from_confirmed_requests();
+
+update public.project_barometer
+set current_orders = (
+      select coalesce(sum(o.confirmed_order_count), 0)::integer
+      from public.order_requests o
+      where o.status in ('validated', 'completed')
+    ),
+    updated_at = now()
+where id = 1;
 
 notify pgrst, 'reload schema';
 

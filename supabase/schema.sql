@@ -95,7 +95,7 @@ create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 begin
   insert into public.profiles (id, display_name)
@@ -109,6 +109,14 @@ begin
   )
   on conflict (id) do nothing;
 
+  -- Une demande peut avoir été déposée avant la création du compte.
+  -- On la rattache dès l'inscription grâce à l'adresse e-mail vérifiée par Auth.
+  update public.order_requests
+  set linked_user_id = new.id,
+      updated_at = now()
+  where linked_user_id is null
+    and lower(trim(customer_email)) = lower(trim(coalesce(new.email, '')));
+
   return new;
 end;
 $$;
@@ -119,6 +127,13 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row
+  execute function public.handle_new_user();
+
+drop trigger if exists on_auth_user_email_changed on auth.users;
+create trigger on_auth_user_email_changed
+  after update of email on auth.users
+  for each row
+  when (old.email is distinct from new.email)
   execute function public.handle_new_user();
 
 -- =============================================================================
@@ -151,7 +166,7 @@ where u.id = p.id
 
 create table if not exists public.project_barometer (
   id bigint primary key generated always as identity,
-  current_orders integer not null default 50 check (current_orders >= 0),
+  current_orders integer not null default 0 check (current_orders >= 0),
   target_orders integer not null default 100 check (target_orders > 0),
   next_milestone text not null default 'remise en main propre & café offert',
   updated_at timestamptz not null default now()
@@ -222,6 +237,7 @@ create table if not exists public.order_requests (
   status text not null default 'new'
     check (status in ('new', 'in_progress', 'validated', 'declined', 'completed')),
   confirmed_order_count integer not null default 0 check (confirmed_order_count >= 0),
+  linked_user_id uuid references public.profiles(id) on delete set null,
   admin_notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -229,6 +245,12 @@ create table if not exists public.order_requests (
 
 alter table public.order_requests
   add column if not exists confirmed_order_count integer not null default 0;
+
+alter table public.order_requests
+  add column if not exists linked_user_id uuid references public.profiles(id) on delete set null;
+
+create index if not exists order_requests_linked_user_id_idx
+  on public.order_requests (linked_user_id);
 
 alter table public.order_requests
   drop constraint if exists order_requests_confirmed_order_count_check;
@@ -304,24 +326,54 @@ alter table public.user_barometer_progress
   add constraint user_barometer_progress_completed_count_check
   check (completed_count >= 0);
 
-create or replace function public.sync_project_barometer_from_user_orders()
+create or replace function public.bl_link_order_request_user()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
+as $$
+begin
+  select u.id
+  into new.linked_user_id
+  from auth.users u
+  where lower(trim(u.email)) = lower(trim(new.customer_email))
+  order by u.created_at asc
+  limit 1;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists link_order_request_user_from_email on public.order_requests;
+create trigger link_order_request_user_from_email
+  before insert or update of customer_email on public.order_requests
+  for each row
+  execute function public.bl_link_order_request_user();
+
+update public.order_requests o
+set linked_user_id = u.id,
+    updated_at = now()
+from auth.users u
+where o.linked_user_id is null
+  and lower(trim(o.customer_email)) = lower(trim(u.email));
+
+drop trigger if exists sync_project_barometer_after_user_orders on public.user_orders;
+drop trigger if exists sync_project_barometer_after_order_requests on public.order_requests;
+drop function if exists public.sync_project_barometer_from_user_orders();
+
+create or replace function public.sync_project_barometer_from_confirmed_requests()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
 as $$
 declare
   v_total integer;
 begin
-  select (
-    coalesce((select sum(order_count) from public.user_orders), 0)
-    + coalesce((
-      select sum(confirmed_order_count)
-      from public.order_requests
-      where status in ('validated', 'completed')
-    ), 0)
-  )::integer
-  into v_total;
+  select coalesce(sum(o.confirmed_order_count), 0)::integer
+  into v_total
+  from public.order_requests o
+  where o.status in ('validated', 'completed');
 
   update public.project_barometer
   set current_orders = v_total,
@@ -332,17 +384,19 @@ begin
 end;
 $$;
 
-drop trigger if exists sync_project_barometer_after_user_orders on public.user_orders;
-create trigger sync_project_barometer_after_user_orders
-  after insert or update or delete on public.user_orders
-  for each statement
-  execute function public.sync_project_barometer_from_user_orders();
-
-drop trigger if exists sync_project_barometer_after_order_requests on public.order_requests;
 create trigger sync_project_barometer_after_order_requests
   after insert or update or delete on public.order_requests
   for each statement
-  execute function public.sync_project_barometer_from_user_orders();
+  execute function public.sync_project_barometer_from_confirmed_requests();
+
+update public.project_barometer
+set current_orders = (
+      select coalesce(sum(o.confirmed_order_count), 0)::integer
+      from public.order_requests o
+      where o.status in ('validated', 'completed')
+    ),
+    updated_at = now()
+where id = 1;
 
 alter table public.project_barometer enable row level security;
 alter table public.products enable row level security;
@@ -426,6 +480,37 @@ create policy "order_requests_admin_manage"
     )
   );
 
+create or replace function public.bl_customer_order_history()
+returns table (
+  id bigint,
+  product_name text,
+  category text,
+  status text,
+  confirmed_order_count integer,
+  created_at timestamptz,
+  updated_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select
+    o.id,
+    o.product_name,
+    o.category,
+    o.status,
+    o.confirmed_order_count,
+    o.created_at,
+    o.updated_at
+  from public.order_requests o
+  where o.linked_user_id = (select auth.uid())
+  order by o.created_at desc;
+$$;
+
+revoke all on function public.bl_customer_order_history() from public, anon;
+grant execute on function public.bl_customer_order_history() to authenticated;
+
 drop policy if exists "admin_threshold_rules_select_public_or_admin" on public.admin_threshold_rules;
 create policy "admin_threshold_rules_select_public_or_admin"
   on public.admin_threshold_rules for select
@@ -473,17 +558,8 @@ create policy "user_orders_select_self_or_admin"
   );
 
 drop policy if exists "user_orders_insert_self_or_admin" on public.user_orders;
-create policy "user_orders_insert_self_or_admin"
-  on public.user_orders for insert
-  with check (
-    user_id = auth.uid()
-    or exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'admin'
-    )
-  );
+-- Les anciennes lignes sont conservées en lecture seule. Seul l'admin peut
+-- désormais écrire via la policy user_orders_admin_update_delete ci-dessous.
 
 drop policy if exists "user_orders_admin_update_delete" on public.user_orders;
 create policy "user_orders_admin_update_delete"
@@ -544,40 +620,14 @@ create policy "user_barometer_progress_select_self_or_admin"
   );
 
 drop policy if exists "user_barometer_progress_insert_self_or_admin" on public.user_barometer_progress;
-create policy "user_barometer_progress_insert_self_or_admin"
-  on public.user_barometer_progress for insert
-  with check (
-    user_id = auth.uid()
-    or exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'admin'
-    )
-  );
-
 drop policy if exists "user_barometer_progress_update_self_or_admin" on public.user_barometer_progress;
-create policy "user_barometer_progress_update_self_or_admin"
-  on public.user_barometer_progress for update
-  using (
-    user_id = auth.uid()
-    or exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'admin'
-    )
-  )
-  with check (
-    user_id = auth.uid()
-    or exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'admin'
-    )
-  );
+
+drop policy if exists "user_barometer_progress_admin_write" on public.user_barometer_progress;
+create policy "user_barometer_progress_admin_write"
+  on public.user_barometer_progress for all
+  using (public.bl_is_admin())
+  with check (public.bl_is_admin());
 
 insert into public.project_barometer (id, current_orders, target_orders, next_milestone)
-values (1, 50, 100, 'remise en main propre & café offert')
+values (1, 0, 100, 'remise en main propre & café offert')
 on conflict (id) do nothing;

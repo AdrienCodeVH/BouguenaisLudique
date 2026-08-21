@@ -151,6 +151,7 @@
         [
           row.customer_name,
           row.customer_email,
+          row.linked_user_id,
           row.category,
           requestCategoryLabels[row.category],
           row.product_name,
@@ -305,6 +306,9 @@ Bouguenais Ludique
         const confirmedOrderCount = Number.isFinite(Number(row.confirmed_order_count))
           ? Math.max(0, Number(row.confirmed_order_count))
           : 0;
+        const hasLinkedAccount = Boolean(row.linked_user_id);
+        const isCredited = safeStatus === "validated" || safeStatus === "completed";
+        const accountLinkLabel = hasLinkedAccount ? "Compte client lié" : "Aucun compte correspondant";
         return `
           <tr data-order-request-row="${requestId}">
             <td data-label="Reçue le">
@@ -312,7 +316,9 @@ Bouguenais Ludique
             </td>
             <td data-label="Demandeur">
               <strong>${escapeHtml(row.customer_name)}</strong><br />
-              <a class="admin-media-link" href="${mailHref}">${escapeHtml(row.customer_email)}</a>
+              <a class="admin-media-link" href="${mailHref}">${escapeHtml(row.customer_email)}</a><br />
+              <span class="admin-request-account admin-request-account--${hasLinkedAccount ? "linked" : "missing"}">${accountLinkLabel}</span>
+              ${!hasLinkedAccount && isCredited && confirmedOrderCount > 0 ? '<small class="admin-request-account-warning">La quantité compte au global, mais pas encore dans l’espace client.</small>' : ""}
             </td>
             <td data-label="Demande">
               <strong>${escapeHtml(row.product_name)}</strong><br />
@@ -329,14 +335,14 @@ Bouguenais Ludique
                 ${renderRequestStatusOptions(safeStatus)}
               </select>
             </td>
-            <td data-label="Commandes comptées">
+            <td data-label="Quantité validée">
               <input
                 class="admin-request-count"
                 type="number"
                 min="0"
                 step="1"
                 value="${confirmedOrderCount}"
-                aria-label="Commandes comptées pour ${escapeHtml(row.product_name)}"
+                aria-label="Quantité validée pour ${escapeHtml(row.product_name)}"
                 data-order-request-count
                 data-order-request-id="${requestId}"
               />
@@ -551,7 +557,7 @@ Bouguenais Ludique
 
   async function loadOrderRequests() {
     const res = await apiFetch(
-      "/rest/v1/order_requests?select=id,customer_name,customer_email,category,product_name,player_age,budget_eur,details,pickup_notes,status,confirmed_order_count,admin_notes,created_at,updated_at&order=created_at.desc"
+      "/rest/v1/order_requests?select=id,customer_name,customer_email,category,product_name,player_age,budget_eur,details,pickup_notes,status,confirmed_order_count,linked_user_id,admin_notes,created_at,updated_at&order=created_at.desc"
     );
     const rows = await res.json();
     currentOrderRequests = Array.isArray(rows) ? rows : [];
@@ -895,6 +901,7 @@ Bouguenais Ludique
     const status = statusField instanceof HTMLSelectElement ? statusField.value : "new";
     const adminNotes = notesField instanceof HTMLTextAreaElement ? notesField.value.trim() : "";
     const confirmedOrderCount = countField instanceof HTMLInputElement ? Number(countField.value) : 0;
+    const requestRow = currentOrderRequests.find((row) => String(row.id) === String(requestId));
 
     if (!requestStatuses.some(([value]) => value === status)) {
       setFeedback(requestsFeedback, "Statut de demande invalide.", true);
@@ -921,7 +928,15 @@ Bouguenais Ludique
           updated_at: new Date().toISOString(),
         }),
       });
-      setFeedback(requestsFeedback, "Demande mise à jour.", false);
+      const creditsCustomer =
+        confirmedOrderCount > 0 && (status === "validated" || status === "completed");
+      const feedbackMessage =
+        creditsCustomer && !requestRow?.linked_user_id
+          ? "Demande mise à jour. La quantité compte au global ; elle apparaîtra chez le client dès qu'un compte utilisera cet e-mail."
+          : creditsCustomer
+            ? "Demande mise à jour et quantité créditée au compte client."
+            : "Demande mise à jour.";
+      setFeedback(requestsFeedback, feedbackMessage, false);
       await loadOrderRequests();
     } catch (err) {
       setFeedback(requestsFeedback, err.message || "Impossible de mettre à jour la demande.", true);

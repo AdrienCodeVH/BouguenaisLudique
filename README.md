@@ -31,11 +31,15 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
 - Barometre du projet :
   - valeur statique par defaut dans `index.html` ;
   - surcharge dynamique depuis la table `project_barometer` si Supabase est configure.
+- Espace client (`pages/mon-espace.html`) :
+  - historique en lecture seule des demandes liées à l'e-mail du compte ;
+  - contribution personnelle calculée uniquement depuis les quantités validées ;
+  - aucune déclaration libre de commande ou de récompense côté client.
 - Espace admin (`pages/admin.html`) :
   - changement de role utilisateur (`client`, `employee`, `admin`) ;
   - mise a jour du barometre ;
   - ajout/suppression de produits ;
-  - suivi des demandes de commande avec statut et notes internes.
+  - suivi des demandes avec statut, quantité validée et liaison automatique au compte client.
 
 ## Arborescence
 
@@ -159,11 +163,26 @@ Le SQL fournit dans `supabase/schema.sql` contient un bloc de bootstrap admin :
   - `name`, `category`, `price_eur`, `is_active`, timestamps
 - `public.order_requests`
   - demandeur, e-mail, univers, produit recherche, budget, details, statut
+  - quantité validée et `linked_user_id` résolu automatiquement depuis Supabase Auth
 
 Le schema active la RLS et applique des policies pour :
 - lecture publique du barometre et des produits ;
 - ecriture reservee aux admins ;
+- historique client exposé par la fonction sécurisée `bl_customer_order_history()` ;
+- anciennes lignes `user_orders` conservées mais exclues du baromètre global ;
 - gestion fine des droits sur `profiles`.
+
+## Historique client sécurisé
+
+La migration `supabase/secure_customer_order_history.sql` :
+
+1. rattache les demandes existantes aux comptes ayant le même e-mail ;
+2. rattache aussi une ancienne demande lorsqu'un compte est créé plus tard ;
+3. supprime les policies permettant à un client de s'auto-créditer ;
+4. recalcule le baromètre uniquement depuis les demandes `validated` ou `completed` ;
+5. expose au client un historique limité, sans e-mail ni notes internes.
+
+Elle est idempotente et s'exécute dans Supabase → SQL Editor.
 
 ## Notes securite
 

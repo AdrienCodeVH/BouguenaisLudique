@@ -806,6 +806,34 @@ a {
   background: color-mix(in srgb, #ef4444 15%, #fff 85%);
 }
 
+.admin-request-account {
+  display: inline-flex;
+  margin-top: 0.45rem;
+  padding: 0.24rem 0.52rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.admin-request-account--linked {
+  color: #166534;
+  background: color-mix(in srgb, #22c55e 18%, #fff 82%);
+}
+
+.admin-request-account--missing {
+  color: #7c4a03;
+  background: color-mix(in srgb, var(--yellow) 26%, #fff 74%);
+}
+
+.admin-request-account-warning {
+  display: block;
+  margin-top: 0.4rem;
+  color: #9a3412;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .admin-request-actions {
   min-width: 130px;
 }

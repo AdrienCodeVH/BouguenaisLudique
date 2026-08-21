@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mon espace - Bouguenais Ludique</title>
-    <meta name="description" content="Suivi personnel des commandes sur Bouguenais Ludique." />
+    <title>Mes commandes - Bouguenais Ludique</title>
+    <meta name="description" content="Historique personnel des demandes et commandes Bouguenais Ludique." />
     <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
     <link rel="stylesheet" href="../assets/css/style.css" />
     <style>
@@ -13,53 +13,132 @@
         gap: 1rem;
       }
       .space-card {
+        min-width: 0;
         border: 1px solid rgba(0, 0, 0, 0.08);
         border-radius: 1rem;
-        padding: 1rem;
+        padding: clamp(1rem, 3vw, 1.5rem);
         background: #fff;
       }
-      .space-grid {
+      .space-summary {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 0.8rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
       }
-      .admin-form-inline {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        align-items: end;
+      .space-summary-card {
+        padding: 1rem;
+        border: 1px solid color-mix(in srgb, var(--blue) 14%, transparent);
+        border-radius: 1rem;
+        background: linear-gradient(145deg, #fff, color-mix(in srgb, var(--blue-muted) 58%, #fff 42%));
       }
-      .admin-form-inline .form-field {
-        flex: 1 1 220px;
+      .space-summary-card p {
+        margin: 0;
       }
       .space-metric {
-        margin: 0.2rem 0 0;
+        margin: 0.35rem 0 0.75rem;
+        color: var(--blue);
+        font-family: "Playfair Display", "Times New Roman", serif;
+        font-size: clamp(1.4rem, 4vw, 2rem);
         font-weight: 700;
       }
-      .admin-visibility-card {
-        border: 1px solid rgba(0, 0, 0, 0.08);
+      .space-card-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.25rem;
+      }
+      .space-card-heading h2 {
+        margin: 0;
+      }
+      .space-history-intro,
+      .space-trust-note,
+      .space-orders-meta {
+        color: var(--text-light);
+      }
+      .space-trust-note {
+        margin: 1rem 0 0;
+        padding: 0.75rem 0.9rem;
         border-radius: 0.8rem;
-        padding: 0.75rem;
-        background: #fcfcfc;
+        background: color-mix(in srgb, #22c55e 9%, #fff 91%);
+        font-size: 0.88rem;
       }
-      .admin-visibility-card h4 {
-        margin: 0 0 0.4rem;
-        font-size: 0.95rem;
-      }
-      .admin-visibility-metric {
-        margin: 0.4rem 0;
+      .space-orders-meta {
+        margin: 1rem 0 0.65rem;
+        font-size: 0.88rem;
         font-weight: 700;
       }
-      .admin-visibility-track {
-        width: 100%;
-        height: 8px;
-        border-radius: 999px;
-        background: rgba(0, 0, 0, 0.08);
-        overflow: hidden;
+      .space-table-wrap {
+        overflow-x: auto;
       }
-      .admin-visibility-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #1e40af, #3b82f6, #eab308);
+      .space-orders-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .space-orders-table th,
+      .space-orders-table td {
+        padding: 0.8rem 0.55rem;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+      .space-orders-table th {
+        color: color-mix(in srgb, var(--blue) 74%, var(--text) 26%);
+        font-size: 0.74rem;
+        letter-spacing: 0.025em;
+        text-transform: uppercase;
+      }
+      .space-orders-table .admin-empty {
+        padding: 1rem 0.55rem;
+      }
+      @media (max-width: 700px) {
+        .space-summary {
+          grid-template-columns: 1fr;
+        }
+        .space-card-heading {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .space-card-heading .btn {
+          width: 100%;
+        }
+        .space-orders-table,
+        .space-orders-table tbody,
+        .space-orders-table tr,
+        .space-orders-table td {
+          display: block;
+          width: 100%;
+        }
+        .space-orders-table thead {
+          display: none;
+        }
+        .space-orders-table tbody {
+          display: grid;
+          gap: 0.9rem;
+        }
+        .space-orders-table tbody tr {
+          padding: 0.35rem 0.8rem;
+          border: 1px solid var(--border);
+          border-radius: 1rem;
+          background: #fff;
+          box-shadow: 0 8px 20px color-mix(in srgb, var(--blue) 7%, transparent);
+        }
+        .space-orders-table td {
+          display: grid;
+          grid-template-columns: minmax(7rem, 0.42fr) minmax(0, 1fr);
+          gap: 0.65rem;
+          padding: 0.7rem 0;
+        }
+        .space-orders-table td::before {
+          content: attr(data-label);
+          color: var(--text-light);
+          font-size: 0.7rem;
+          font-weight: 800;
+          letter-spacing: 0.025em;
+          text-transform: uppercase;
+        }
+        .space-orders-table .admin-empty::before {
+          content: none;
+        }
       }
     </style>
   </head>
@@ -81,10 +160,10 @@
     <main>
       <section class="hero">
         <div class="container">
-          <p class="eyebrow">Espace joueur</p>
-          <h1>Mon baromètre</h1>
+          <p class="eyebrow">Espace client</p>
+          <h1>Mes commandes</h1>
           <p class="hero-text">
-            Suis ta contribution personnelle en commandes, en parallèle du baromètre global.
+            Retrouve tes demandes et les quantités validées par Bouguenais Ludique.
           </p>
         </div>
       </section>
@@ -94,50 +173,53 @@
           <p id="space-status" class="form-feedback" role="status" aria-live="polite" hidden></p>
 
           <article class="space-card">
-            <h2>Baromètres</h2>
-            <div class="space-grid">
-              <div>
-                <p class="project-barometer-heading">Global (visible par tous)</p>
+            <div class="space-card-heading">
+              <h2>Baromètres vérifiés</h2>
+            </div>
+            <div class="space-summary">
+              <div class="space-summary-card">
+                <p class="project-barometer-heading">Projet global</p>
                 <p id="space-global-count" class="space-metric">0 / 0 commandes</p>
                 <div class="project-barometer-track" role="progressbar" aria-valuemin="0" aria-valuemax="100">
                   <div id="space-global-fill" class="project-barometer-fill" style="--bar-target: 0%"></div>
                 </div>
               </div>
-              <div>
-                <p class="project-barometer-heading">Personnel (visible uniquement par toi)</p>
+              <div class="space-summary-card">
+                <p class="project-barometer-heading">Ma contribution</p>
                 <p id="space-personal-count" class="space-metric">0 / 0 commandes</p>
                 <div class="project-barometer-track" role="progressbar" aria-valuemin="0" aria-valuemax="100">
                   <div id="space-personal-fill" class="project-barometer-fill" style="--bar-target: 0%"></div>
                 </div>
               </div>
             </div>
+            <p class="space-trust-note">Seules les quantités validées par l'administrateur sont comptabilisées.</p>
           </article>
 
           <article class="space-card">
-            <h2>Ajouter des commandes</h2>
-            <form id="space-order-form" class="admin-form-inline">
-              <div class="form-field">
-                <label for="space-order-template">Baromètre concerné</label>
-                <select id="space-order-template" name="template_id" required>
-                  <option value="" selected disabled>Choisir un baromètre</option>
-                </select>
-              </div>
-              <div class="form-field">
-                <label for="space-order-count">Nombre de commandes</label>
-                <input id="space-order-count" name="order_count" type="number" min="1" required />
-              </div>
-              <div class="form-field">
-                <label for="space-order-note">Note (optionnel)</label>
-                <input id="space-order-note" name="note" type="text" maxlength="220" />
-              </div>
-              <button type="submit" class="btn">Enregistrer</button>
-            </form>
-            <p id="space-order-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
-          </article>
-
-          <article class="space-card">
-            <h2>Mes baromètres utilisateurs</h2>
-            <div id="space-user-barometers-grid" class="space-grid" aria-live="polite"></div>
+            <div class="space-card-heading">
+              <h2>Mes demandes</h2>
+              <a class="btn" href="./catalogue.html#demande-commande">Faire une demande</a>
+            </div>
+            <p class="space-history-intro">
+              Les demandes utilisant l'e-mail de ce compte apparaissent automatiquement ici, sans exposer les notes internes.
+            </p>
+            <p id="space-orders-meta" class="space-orders-meta" aria-live="polite">Chargement de l'historique…</p>
+            <div class="space-table-wrap">
+              <table class="space-orders-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Jeu ou produit</th>
+                    <th>Catégorie</th>
+                    <th>Statut</th>
+                    <th>Quantité validée</th>
+                  </tr>
+                </thead>
+                <tbody id="space-orders-body">
+                  <tr><td colspan="5" class="admin-empty">Chargement de l'historique…</td></tr>
+                </tbody>
+              </table>
+            </div>
           </article>
         </div>
       </section>
