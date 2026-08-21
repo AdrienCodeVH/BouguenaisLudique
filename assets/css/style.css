@@ -1623,6 +1623,145 @@ textarea:focus-visible {
   margin-top: 0.6rem;
 }
 
+.order-request-form[hidden],
+.order-auth-gate[hidden] {
+  display: none;
+}
+
+.order-auth-gate {
+  display: grid;
+  justify-items: center;
+  gap: 0.9rem;
+  margin-top: 0.7rem;
+  padding: clamp(1.5rem, 5vw, 2.4rem);
+  border: 1px solid color-mix(in srgb, var(--blue) 15%, transparent);
+  border-radius: var(--border-radius);
+  background: color-mix(in srgb, #fff 88%, var(--blue-soft) 12%);
+  box-shadow: 0 16px 38px color-mix(in srgb, var(--blue) 9%, transparent);
+  text-align: center;
+}
+
+.order-auth-gate-icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 999px;
+  font-size: 1.7rem;
+  background: linear-gradient(145deg, var(--yellow-light), var(--blue-soft));
+  border: 1px solid color-mix(in srgb, var(--blue) 16%, transparent);
+}
+
+.order-auth-gate h3,
+.order-auth-gate p {
+  margin: 0;
+}
+
+.order-auth-gate p {
+  max-width: 35rem;
+  color: var(--text-light);
+}
+
+.order-auth-gate-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.content-page-order-confirmation main {
+  justify-content: center;
+}
+
+.content-page-order-confirmation .container--narrow {
+  max-width: 760px;
+}
+
+.order-confirmation-section {
+  display: grid;
+  align-items: center;
+  min-height: min(700px, calc(100vh - 160px));
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--blue-soft) 72%, transparent), transparent 38%),
+    radial-gradient(circle at 82% 28%, color-mix(in srgb, var(--yellow-soft) 72%, transparent), transparent 38%);
+}
+
+.order-confirmation-card {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: clamp(1.7rem, 6vw, 3rem);
+  border: 1px solid color-mix(in srgb, var(--blue) 14%, transparent);
+  border-radius: calc(var(--border-radius) + 6px);
+  background: color-mix(in srgb, #fff 92%, var(--blue-soft) 8%);
+  box-shadow: 0 22px 52px color-mix(in srgb, var(--blue) 12%, transparent);
+  text-align: center;
+}
+
+.order-confirmation-card h1,
+.order-confirmation-card p {
+  margin: 0;
+}
+
+.order-confirmation-card h1 {
+  max-width: 46rem;
+}
+
+.order-confirmation-card > p:not(.eyebrow) {
+  max-width: 39rem;
+}
+
+.order-confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(145deg, #16a34a, #15803d);
+  box-shadow: 0 12px 26px color-mix(in srgb, #15803d 25%, transparent);
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.order-confirmation-product {
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue-soft) 70%, #fff 30%);
+  font-weight: 700;
+}
+
+.order-confirmation-note,
+.order-confirmation-redirect {
+  color: var(--text-light);
+  font-size: 0.92rem;
+}
+
+.order-confirmation-progress {
+  width: min(100%, 28rem);
+  height: 0.4rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--blue-soft) 62%, #fff 38%);
+}
+
+.order-confirmation-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue), var(--yellow));
+  transform-origin: left;
+  animation: order-confirmation-countdown 8s linear forwards;
+}
+
+@keyframes order-confirmation-countdown {
+  to {
+    transform: scaleX(0);
+  }
+}
+
 .form-field--honeypot {
   position: absolute;
   left: -10000px;

@@ -46,7 +46,7 @@
       content="https://adriencodevh.github.io/BouguenaisLudique/assets/images/og-bouguenais-ludique.png"
     />
     <link rel="icon" href="../assets/images/favicon_BL.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="../assets/css/style.css?v=20260822-1" />
+    <link rel="stylesheet" href="../assets/css/style.css?v=20260822-2" />
   </head>
   <body class="content-page content-page-catalogue">
     <header class="site-header">
@@ -149,7 +149,19 @@
       <section class="section" id="demande-commande" aria-labelledby="order-request-title">
         <div class="container container--narrow">
           <h2 id="order-request-title" class="auth-section-title">Faire une demande de commande</h2>
-          <form id="order-request-form" class="auth-form order-request-form" novalidate>
+          <div id="order-request-auth-gate" class="order-auth-gate">
+            <span class="order-auth-gate-icon" aria-hidden="true">🎲</span>
+            <h3>Créez votre compte pour commander</h3>
+            <p>
+              Votre compte permet de sécuriser la demande et de suivre son avancement dans
+              votre espace personnel.
+            </p>
+            <div class="order-auth-gate-actions">
+              <a class="btn" href="./inscription.html?next=order">Créer mon compte</a>
+              <a class="btn btn-secondary" href="./connexion.html?next=order">J’ai déjà un compte</a>
+            </div>
+          </div>
+          <form id="order-request-form" class="auth-form order-request-form" novalidate hidden>
             <div class="form-field">
               <label for="order-request-name">Nom ou pseudo</label>
               <input
@@ -173,6 +185,7 @@
                 maxlength="160"
                 required
               />
+              <span class="form-hint">Cette adresse est celle de votre compte connecté.</span>
             </div>
 
             <div class="form-field">
@@ -278,7 +291,7 @@
               <a href="./confidentialite.html">En savoir plus sur vos données.</a>
             </p>
 
-            <button type="submit" class="btn auth-form-submit">Envoyer la demande</button>
+            <button type="submit" class="btn auth-form-submit">Envoyer ma demande</button>
             <p id="order-request-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
           </form>
         </div>
@@ -299,7 +312,7 @@
     <script src="../assets/js/auth-config.js?v=20260822-1"></script>
     <script src="../assets/js/auth-api.js?v=20260822-1"></script>
     <script src="../assets/js/auth-ui.js?v=20260822-1"></script>
-    <script src="../assets/js/order-request.js?v=20260822-1"></script>
+    <script src="../assets/js/order-request.js?v=20260822-2"></script>
     <script
       src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=blTurnstileReady&amp;render=explicit"
       defer

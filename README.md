@@ -158,10 +158,10 @@ placée dans le dépôt ou dans le JavaScript public.
 
 ## Protection anti-spam
 
-Le navigateur envoie les demandes à
+Le navigateur envoie les demandes avec le jeton du compte connecté à
 `supabase/functions/submit-order-request/index.ts`. Cette fonction vérifie le
-jeton Cloudflare Turnstile, l'action et le hostname avant d'insérer la ligne avec
-le client serveur. La policy d'insertion publique est supprimée par
+compte, impose son e-mail, puis vérifie le jeton Cloudflare Turnstile, l'action
+et le hostname avant d'insérer la ligne avec le client serveur. La policy d'insertion publique est supprimée par
 `supabase/secure_order_requests.sql`, ce qui empêche de contourner la protection
 en appelant directement l'API REST.
 

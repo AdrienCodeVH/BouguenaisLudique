@@ -2,10 +2,14 @@
   const form = document.getElementById("order-request-form");
   const feedback = document.getElementById("order-request-feedback");
   const turnstileContainer = document.getElementById("order-request-turnstile");
+  const authGate = document.getElementById("order-request-auth-gate");
   if (!form || !feedback || !window.BLAuth) return;
 
+  const draftStorageKey = "bl_order_request_draft";
+  const confirmationStorageKey = "bl_order_confirmation";
   let turnstileToken = "";
   let turnstileWidgetId = null;
+  let authenticatedSession = null;
 
   const allowedCategories = [
     "tcg",
@@ -28,6 +32,68 @@
     if (!trimmed) return null;
     const parsed = Number(trimmed.replace(",", "."));
     return Number.isFinite(parsed) ? parsed : NaN;
+  }
+
+  function getAuthenticatedSession() {
+    const session = window.BLAuthUi?.getStoredSession?.();
+    const accessToken = session && session.access_token;
+    if (!accessToken) return null;
+
+    const expiresAt = Number(session.expires_at) || 0;
+    if (expiresAt && expiresAt <= Math.floor(Date.now() / 1000) + 30) {
+      sessionStorage.removeItem("bl_auth_session");
+      return null;
+    }
+
+    const claims = window.BLAuthUi?.parseJwtPayload?.(accessToken);
+    const email = trimValue(claims && claims.email).toLowerCase();
+    if (!claims || !claims.sub || !isValidEmail(email)) return null;
+
+    return { accessToken, claims, email };
+  }
+
+  function saveDraft(values) {
+    try {
+      sessionStorage.setItem(
+        draftStorageKey,
+        JSON.stringify({
+          customer_name: values.customer_name,
+          category: values.category,
+          product_name: values.product_name,
+          player_age: values.player_age,
+          budget_eur: values.budget_eur,
+          details: values.details,
+          pickup_notes: values.pickup_notes,
+          consent: values.consent,
+        })
+      );
+    } catch (_) {
+      // Le parcours reste utilisable même si le stockage navigateur est indisponible.
+    }
+  }
+
+  function restoreDraft() {
+    let draft = null;
+    try {
+      draft = JSON.parse(sessionStorage.getItem(draftStorageKey) || "null");
+    } catch (_) {
+      draft = null;
+    }
+    if (!draft || typeof draft !== "object") return;
+
+    ["customer_name", "category", "product_name", "player_age", "budget_eur", "details", "pickup_notes"].forEach(
+      (name) => {
+        const field = form.elements[name];
+        if (field && draft[name] !== null && draft[name] !== undefined) {
+          field.value = String(draft[name]);
+        }
+      }
+    );
+    form.consent.checked = Boolean(draft.consent);
+  }
+
+  function redirectToAuthentication(pageName) {
+    window.location.href = `./${pageName}.html?next=order`;
   }
 
   function collectOrderRequestValues() {
@@ -54,6 +120,8 @@
     }
     if (!isValidEmail(values.customer_email)) {
       errors.customer_email = "Indiquez une adresse e-mail valide.";
+    } else if (authenticatedSession && values.customer_email !== authenticatedSession.email) {
+      errors.customer_email = "Utilisez l’adresse e-mail associée à votre compte.";
     }
     if (!allowedCategories.includes(values.category)) {
       errors.category = "Choisissez un univers de jeu.";
@@ -143,7 +211,12 @@
   }
 
   function renderTurnstile() {
-    if (!turnstileContainer || !window.turnstile || turnstileWidgetId !== null) return;
+    if (
+      !authenticatedSession ||
+      !turnstileContainer ||
+      !window.turnstile ||
+      turnstileWidgetId !== null
+    ) return;
 
     const sitekey = trimValue(window.BL_TURNSTILE_SITE_KEY);
     if (!sitekey || sitekey === "VOTRE_CLE_SITE_TURNSTILE") {
@@ -173,6 +246,12 @@
   window.blTurnstileReady = renderTurnstile;
 
   async function submitOrderRequest(values) {
+    if (!authenticatedSession) {
+      const error = new Error("Connectez-vous pour envoyer cette demande.");
+      error.authenticationRequired = true;
+      throw error;
+    }
+
     const cfg = window.BLAuth.getSupabaseConfig();
     if (!cfg || !cfg.isConfigured) {
       throw new Error("Configuration Supabase manquante. Écrivez directement à bouguenaisludique@gmail.com.");
@@ -182,6 +261,7 @@
       method: "POST",
       headers: {
         apikey: cfg.key,
+        Authorization: `Bearer ${authenticatedSession.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(buildPayload(values)),
@@ -189,10 +269,16 @@
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        const error = new Error("Votre session a expiré. Reconnectez-vous pour envoyer la demande.");
+        error.authenticationRequired = true;
+        throw error;
+      }
       const messages = {
         verification_failed: "La vérification anti-robot a expiré ou a échoué. Recommencez-la.",
         rate_limited: "Une demande vient déjà d'être envoyée avec cet e-mail. Patientez deux minutes.",
         invalid_submission: "Vérifiez les informations du formulaire avant de réessayer.",
+        account_email_mismatch: "L’e-mail de la demande doit correspondre à celui de votre compte.",
       };
       throw new Error(messages[data.error] || "La demande n'a pas pu être envoyée.");
     }
@@ -201,6 +287,12 @@
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     setFeedback("");
+
+    if (!authenticatedSession) {
+      setFeedback("Créez un compte ou connectez-vous avant d’envoyer une demande.", true);
+      redirectToAuthentication("inscription");
+      return;
+    }
 
     const values = collectOrderRequestValues();
     const errors = validateOrderRequest(values);
@@ -216,10 +308,20 @@
 
     try {
       await submitOrderRequest(values);
-      form.reset();
-      resetTurnstile();
-      setFeedback("Demande envoyée. Je reviens vers vous par e-mail pour confirmer les possibilités.", false);
+      sessionStorage.removeItem(draftStorageKey);
+      sessionStorage.setItem(
+        confirmationStorageKey,
+        JSON.stringify({ product_name: values.product_name, submitted_at: Date.now() })
+      );
+      window.location.href = "./commande-confirmee.html";
+      return;
     } catch (err) {
+      if (err && err.authenticationRequired) {
+        saveDraft(values);
+        sessionStorage.removeItem("bl_auth_session");
+        redirectToAuthentication("connexion");
+        return;
+      }
       resetTurnstile();
       setFeedback(err && err.message ? err.message : "La demande n'a pas pu être envoyée.", true);
     } finally {
@@ -231,5 +333,26 @@
     validateOrderRequest,
     buildPayload,
     renderTurnstile,
+    getAuthenticatedSession,
   };
+
+  authenticatedSession = getAuthenticatedSession();
+  if (!authenticatedSession) {
+    form.hidden = true;
+    if (authGate) authGate.hidden = false;
+    return;
+  }
+
+  if (authGate) authGate.hidden = true;
+  form.hidden = false;
+  form.customer_email.value = authenticatedSession.email;
+  form.customer_email.readOnly = true;
+
+  const displayName = trimValue(authenticatedSession.claims.user_metadata?.display_name);
+  if (displayName && !form.customer_name.value) {
+    form.customer_name.value = displayName;
+  }
+
+  restoreDraft();
+  renderTurnstile();
 })();
