@@ -204,8 +204,25 @@ async function handler(request: Request): Promise<Response> {
   });
 }
 
-// Le webhook Supabase ajoute un en-tête d'authentification avec la clé secrète
-// du projet. Le wrapper refuse donc les appels publics ou anonymes.
+const protectedHandler = withSupabase({ auth: "secret:*" }, handler);
+
+function normalizeWebhookAuth(request: Request): Request {
+  const headers = new Headers(request.headers);
+  const authorization = headers.get("authorization");
+
+  // Database Webhooks envoie la clé du projet sous la forme
+  // `Authorization: Bearer ...`, tandis que @supabase/server attend les clés
+  // secrètes dans `apikey`. La valeur reste ensuite validée par le wrapper.
+  if (!headers.has("apikey") && authorization?.startsWith("Bearer ")) {
+    const secretKey = authorization.slice(7).trim();
+    if (secretKey) headers.set("apikey", secretKey);
+  }
+
+  return new Request(request, { headers });
+}
+
+// Le wrapper refuse les appels publics ou anonymes : seule une clé secrète
+// appartenant au projet Supabase permet d'atteindre le gestionnaire.
 export default {
-  fetch: withSupabase({ auth: "secret" }, handler),
+  fetch: (request: Request) => protectedHandler(normalizeWebhookAuth(request)),
 };
