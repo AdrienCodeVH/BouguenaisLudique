@@ -165,6 +165,36 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("create trigger sync_project_barometer_after_order_requests", migration)
         self.assertIn("notify pgrst, 'reload schema'", migration)
 
+    def test_order_request_notification_function_is_secret_and_escapes_html(self):
+        function = read_page("supabase/functions/notify-order-request/index.ts")
+
+        self.assertIn('withSupabase({ auth: "secret:*" }, handler)', function)
+        self.assertIn("function normalizeWebhookAuth(request: Request)", function)
+        self.assertIn('headers.get("authorization")', function)
+        self.assertIn('headers.set("apikey", secretKey)', function)
+        self.assertIn("protectedHandler(normalizeWebhookAuth(request))", function)
+        self.assertIn('Deno.env.get("RESEND_API_KEY")', function)
+        self.assertIn('Deno.env.get("ORDER_NOTIFICATION_TO")', function)
+        self.assertIn('fetch("https://api.resend.com/emails"', function)
+        self.assertIn('candidate.type === "INSERT"', function)
+        self.assertIn('candidate.table === "order_requests"', function)
+        self.assertIn('candidate.schema === "public"', function)
+        self.assertIn('record?.status === "new"', function)
+        self.assertIn("function escapeHtml(value: unknown)", function)
+        self.assertIn("function formatSubjectProduct(value: string)", function)
+        self.assertIn("reply_to: order.customer_email", function)
+        self.assertNotIn("re_xxxxxxxxx", function)
+
+    def test_order_request_notification_setup_is_documented(self):
+        documentation = read_page("supabase/functions/notify-order-request/README.md")
+
+        self.assertIn("RESEND_API_KEY", documentation)
+        self.assertIn("ORDER_NOTIFICATION_TO", documentation)
+        self.assertIn("supabase functions deploy notify-order-request --no-verify-jwt", documentation)
+        self.assertIn("public.order_requests", documentation)
+        self.assertIn("`INSERT` uniquement", documentation)
+        self.assertIn("Add auth header with service key", documentation)
+
     def test_admin_hub_links_to_order_requests_followup(self):
         page = read_page("pages/admin.html")
 
