@@ -24,6 +24,7 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
 - Parcours de commande initial :
   - le visiteur exprime son besoin via le formulaire de demande ;
   - la demande est stockee dans `order_requests` si Supabase est configure ;
+  - une Edge Function peut notifier l'administrateur par e-mail via Resend ;
   - la disponibilite, le prix et le retrait sont confirmes manuellement ;
   - le catalogue public complet sera ouvert quand les premieres commandes auront permis de prioriser l'offre.
 - Barometre du projet :
@@ -61,7 +62,11 @@ Le site est en HTML/CSS/JavaScript natif (sans bundler ni framework front).
 │       ├── inscription.js
 │       └── admin.js
 └── supabase/
-    └── schema.sql
+    ├── schema.sql
+    └── functions/
+        └── notify-order-request/
+            ├── index.ts
+            └── README.md
 ```
 
 ## Prerequis
@@ -107,6 +112,22 @@ window.BL_SUPABASE_ANON_KEY = "VOTRE_CLE_PUBLISHABLE_OU_ANON";
 
 > Le fichier `auth-config.example.js` sert de modele.
 
+## Notifications des demandes
+
+La fonction `supabase/functions/notify-order-request/index.ts` envoie une notification
+à l'administrateur lorsqu'une ligne est ajoutée à `public.order_requests`.
+
+La configuration repose sur :
+
+- une Edge Function Supabase déployée sans vérification JWT de passerelle ;
+- `withSupabase({ auth: "secret" })` pour n'accepter que le webhook authentifié ;
+- les secrets `RESEND_API_KEY` et `ORDER_NOTIFICATION_TO` stockés dans Supabase ;
+- un Database Webhook sur l'événement `INSERT` de `public.order_requests`.
+
+Les instructions de déploiement sont détaillées dans
+`supabase/functions/notify-order-request/README.md`. Aucune clé Resend ne doit être
+placée dans le dépôt ou dans le JavaScript public.
+
 ## Initialisation d'un compte admin
 
 Le SQL fournit dans `supabase/schema.sql` contient un bloc de bootstrap admin :
@@ -138,6 +159,7 @@ Le schema active la RLS et applique des policies pour :
 - La cle Supabase front doit etre **publishable/anon uniquement**.
 - Les operations sensibles reposent sur la RLS (pas sur la seule UI).
 - Les valeurs de `auth-config.js` sont cote client : eviter d'y mettre des informations privees.
+- Les secrets d'envoi d'e-mails restent exclusivement dans les secrets des Edge Functions Supabase.
 
 ## Limites actuelles
 
