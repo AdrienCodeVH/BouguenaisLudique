@@ -23,7 +23,7 @@
       }
       .space-summary {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr);
         gap: 1rem;
       }
       .space-summary-card {
@@ -176,20 +176,13 @@
 
           <article class="space-card">
             <div class="space-card-heading">
-              <h2>Baromètres vérifiés</h2>
+              <h2>Mon baromètre</h2>
             </div>
             <div class="space-summary">
               <div class="space-summary-card">
-                <p class="project-barometer-heading">Projet global</p>
-                <p id="space-global-count" class="space-metric">0 / 0 commandes</p>
-                <div class="project-barometer-track" role="progressbar" aria-valuemin="0" aria-valuemax="100">
-                  <div id="space-global-fill" class="project-barometer-fill" style="--bar-target: 0%"></div>
-                </div>
-              </div>
-              <div class="space-summary-card">
-                <p class="project-barometer-heading">Ma contribution</p>
+                <p class="project-barometer-heading">Mon avancement personnel</p>
                 <p id="space-personal-count" class="space-metric">0 / 0 commandes</p>
-                <div class="project-barometer-track" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div id="space-personal-track" class="project-barometer-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="0" aria-label="Mon avancement personnel">
                   <div id="space-personal-fill" class="project-barometer-fill" style="--bar-target: 0%"></div>
                 </div>
               </div>

@@ -205,11 +205,24 @@ document.addEventListener("keydown", (event) => {
   showComingSoonPopup(comingSoonMessage);
 });
 
-async function loadProjectBarometer() {
+function countValidatedOrders(rows) {
+  if (!Array.isArray(rows)) return 0;
+  return rows.reduce((total, row) => {
+    if (row.status !== "validated" && row.status !== "completed") return total;
+    return total + Math.max(0, Number(row.confirmed_order_count) || 0);
+  }, 0);
+}
+
+async function loadPersonalBarometer() {
   const container = document.querySelector(".project-barometer");
-  if (!container || !window.BLAuth?.getSupabaseConfig) {
+  if (!container) {
     return;
   }
+  container.hidden = true;
+
+  const session = window.BLAuthUi?.getStoredSession?.();
+  const accessToken = session && session.access_token;
+  if (!accessToken || !window.BLAuth?.getSupabaseConfig) return;
 
   const cfg = window.BLAuth.getSupabaseConfig();
   if (!cfg.isConfigured) {
@@ -217,22 +230,33 @@ async function loadProjectBarometer() {
   }
 
   try {
-    const res = await fetch(
-      `${cfg.url}/rest/v1/project_barometer?select=current_orders,target_orders,next_milestone&order=id.asc&limit=1`,
-      {
+    const headers = {
+      apikey: cfg.key,
+      Authorization: `Bearer ${accessToken}`,
+    };
+    const [settingsRes, historyRes] = await Promise.all([
+      fetch(
+        `${cfg.url}/rest/v1/project_barometer?select=target_orders,next_milestone&order=id.asc&limit=1`,
+        { headers }
+      ),
+      fetch(`${cfg.url}/rest/v1/rpc/bl_customer_order_history`, {
+        method: "POST",
         headers: {
-          apikey: cfg.key,
-          Authorization: `Bearer ${cfg.key}`,
+          ...headers,
+          "Content-Type": "application/json",
         },
-      }
-    );
-    if (!res.ok) return;
-    const rows = await res.json().catch(() => []);
-    if (!Array.isArray(rows) || rows.length === 0) return;
-    const data = rows[0];
+        body: "{}",
+      }),
+    ]);
+    if (!settingsRes.ok || !historyRes.ok) return;
 
-    const current = Number(data.current_orders);
-    const target = Number(data.target_orders);
+    const settingsRows = await settingsRes.json().catch(() => []);
+    const historyRows = await historyRes.json().catch(() => []);
+    if (!Array.isArray(settingsRows) || settingsRows.length === 0) return;
+    const settings = settingsRows[0];
+
+    const current = countValidatedOrders(historyRows);
+    const target = Number(settings.target_orders);
     if (!Number.isFinite(current) || !Number.isFinite(target) || target <= 0) return;
 
     const progress = Math.max(0, Math.min(100, (current / target) * 100));
@@ -253,32 +277,18 @@ async function loadProjectBarometer() {
     if (fill) {
       fill.style.setProperty("--bar-target", `${progress}%`);
     }
-    if (hint && data.next_milestone) {
-      hint.textContent = `Prochain palier : ${data.next_milestone}`;
-    }
-
-    const rulesRes = await fetch(
-      `${cfg.url}/rest/v1/admin_threshold_rules?select=label,min_orders,is_triggered,visibility,scope&visibility=eq.public&scope=eq.global&is_triggered=eq.true&order=min_orders.asc`,
-      {
-        headers: {
-          apikey: cfg.key,
-          Authorization: `Bearer ${cfg.key}`,
-        },
-      }
-    );
-    if (!rulesRes.ok) return;
-    const rules = await rulesRes.json().catch(() => []);
-    if (hint && Array.isArray(rules) && rules.length > 0) {
-      const messages = rules.map((rule) => `${rule.label} (>= ${rule.min_orders})`);
-      hint.textContent = `Actions en cours : ${messages.join(" | ")}`;
+    if (hint) {
+      hint.textContent = settings.next_milestone
+        ? `Prochain palier personnel : ${settings.next_milestone}`
+        : "Seules vos commandes validées sont comptabilisées.";
     }
     container.hidden = false;
   } catch (_) {
-    // Laisse le baromètre masque tant que les donnees ne sont pas disponibles.
+    // Laisse le baromètre masqué hors connexion ou si les données personnelles sont indisponibles.
   }
 }
 
-loadProjectBarometer();
+loadPersonalBarometer();
 
 function formatPrice(value) {
   const amount = Number(value);

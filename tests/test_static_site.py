@@ -435,9 +435,31 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("/rest/v1/rpc/bl_customer_order_history", script)
         self.assertIn("function renderOrders(rows)", script)
         self.assertIn("confirmed_order_count", script)
+        self.assertIn("Mon baromètre", page)
+        self.assertIn('id="space-personal-track"', page)
+        self.assertNotIn("Projet global", page)
+        self.assertNotIn("space-global-count", page)
+        self.assertNotIn("current_orders", script)
         self.assertNotIn("/rest/v1/user_orders", script)
         self.assertNotIn("/rest/v1/user_barometer_progress", script)
         self.assertNotIn("function handleSubmit", script)
+
+    def test_homepage_barometer_is_private_and_personal(self):
+        page = read_page("index.html")
+        script = read_page("assets/js/script.js")
+        styles = read_page("assets/css/style.css")
+
+        self.assertIn('aria-label="Mon avancement personnel"', page)
+        self.assertIn("Mon avancement", page)
+        self.assertIn("les commandes\n                validées qui sont rattachées à votre compte", page)
+        self.assertIn("async function loadPersonalBarometer()", script)
+        self.assertIn("window.BLAuthUi?.getStoredSession?.()", script)
+        self.assertIn("/rest/v1/rpc/bl_customer_order_history", script)
+        self.assertIn("Authorization: `Bearer ${accessToken}`", script)
+        self.assertIn("select=target_orders,next_milestone", script)
+        self.assertNotIn("loadProjectBarometer", script)
+        self.assertNotIn("admin_threshold_rules", script)
+        self.assertIn(".project-barometer-card[hidden]", styles)
 
     def test_homepage_points_to_order_flow(self):
         page = read_page("index.html")

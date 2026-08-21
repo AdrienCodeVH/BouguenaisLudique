@@ -1197,6 +1197,10 @@ textarea:focus-visible {
   );
 }
 
+.project-barometer-card[hidden] {
+  display: none;
+}
+
 .project-barometer-card::before {
   content: "";
   position: absolute;
@@ -1320,11 +1324,13 @@ textarea:focus-visible {
 
 .legal-content {
   display: grid;
+  max-width: 52rem;
   gap: 1.15rem;
 }
 
 .legal-notice,
 .legal-section {
+  min-width: 0;
   padding: clamp(1.1rem, 3vw, 1.6rem);
   border: 1px solid color-mix(in srgb, var(--blue) 14%, transparent);
   border-radius: 18px;
@@ -1567,14 +1573,14 @@ textarea:focus-visible {
 }
 
 .order-step-card {
-  position: relative;
-  padding-top: 3.15rem;
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  align-content: start;
+  column-gap: 0.75rem;
+  row-gap: 0.9rem;
 }
 
 .order-step-number {
-  position: absolute;
-  top: 1rem;
-  left: 1.15rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1589,6 +1595,17 @@ textarea:focus-visible {
     color-mix(in srgb, var(--blue-soft) 42%, #fff 58%)
   );
   border: 1px solid color-mix(in srgb, var(--blue) 18%, transparent);
+}
+
+.order-step-card h3 {
+  align-self: center;
+  margin-bottom: 0;
+  line-height: 1.25;
+}
+
+.order-step-card p {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 .order-cta {
@@ -1834,6 +1851,10 @@ textarea:focus-visible {
   background: color-mix(in srgb, #ffffff 82%, var(--blue-muted) 18%);
   border: 1px solid color-mix(in srgb, var(--blue) 14%, transparent);
   box-shadow: 0 12px 30px color-mix(in srgb, var(--blue) 10%, transparent);
+}
+
+.content-page-contact .section h1 {
+  text-align: center;
 }
 
 @media (max-width: 700px) {

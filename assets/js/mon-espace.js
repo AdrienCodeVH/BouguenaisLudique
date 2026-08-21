@@ -2,9 +2,8 @@
   const statusNode = document.getElementById("space-status");
   const ordersBody = document.getElementById("space-orders-body");
   const ordersMeta = document.getElementById("space-orders-meta");
-  const globalCountNode = document.getElementById("space-global-count");
   const personalCountNode = document.getElementById("space-personal-count");
-  const globalFillNode = document.getElementById("space-global-fill");
+  const personalTrackNode = document.getElementById("space-personal-track");
   const personalFillNode = document.getElementById("space-personal-fill");
 
   const statusLabels = {
@@ -23,8 +22,7 @@
   };
 
   let accessToken = "";
-  let globalTarget = 0;
-  let globalCurrent = 0;
+  let personalTarget = 0;
   let personalCurrent = 0;
 
   function setStatus(message, isError) {
@@ -61,14 +59,14 @@
   }
 
   function renderCounts() {
-    const target = globalTarget > 0 ? globalTarget : 1;
-    if (globalCountNode) {
-      globalCountNode.textContent = `${globalCurrent} / ${globalTarget} commandes`;
-    }
+    const target = personalTarget > 0 ? personalTarget : 1;
     if (personalCountNode) {
-      personalCountNode.textContent = `${personalCurrent} / ${globalTarget} commandes`;
+      personalCountNode.textContent = `${personalCurrent} / ${personalTarget} commandes`;
     }
-    setFill(globalFillNode, (globalCurrent / target) * 100);
+    if (personalTrackNode) {
+      personalTrackNode.setAttribute("aria-valuenow", String(personalCurrent));
+      personalTrackNode.setAttribute("aria-valuemax", String(personalTarget));
+    }
     setFill(personalFillNode, (personalCurrent / target) * 100);
   }
 
@@ -133,14 +131,13 @@
     return res;
   }
 
-  async function loadGlobalBarometer() {
+  async function loadBarometerTarget() {
     const res = await apiFetch(
-      "/rest/v1/project_barometer?select=current_orders,target_orders&order=id.asc&limit=1"
+      "/rest/v1/project_barometer?select=target_orders&order=id.asc&limit=1"
     );
     const rows = await res.json();
     if (!Array.isArray(rows) || rows.length === 0) return;
-    globalCurrent = Number(rows[0].current_orders) || 0;
-    globalTarget = Number(rows[0].target_orders) || 0;
+    personalTarget = Number(rows[0].target_orders) || 0;
   }
 
   async function loadOrderHistory() {
@@ -166,7 +163,7 @@
     }
 
     try {
-      await Promise.all([loadGlobalBarometer(), loadOrderHistory()]);
+      await Promise.all([loadBarometerTarget(), loadOrderHistory()]);
       renderCounts();
       setStatus("Historique sécurisé chargé.", false);
     } catch (err) {
