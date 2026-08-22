@@ -30,6 +30,18 @@ function getSupabaseConfig() {
   };
 }
 
+function getRetryAfterSeconds(response) {
+  const value = response.headers.get("Retry-After");
+  if (!value) return null;
+
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, Math.ceil(seconds));
+
+  const retryDate = Date.parse(value);
+  if (Number.isNaN(retryDate)) return null;
+  return Math.max(0, Math.ceil((retryDate - Date.now()) / 1000));
+}
+
 async function signUpWithEmail(email, password, userMetadata) {
   const { url, key } = getSupabaseConfig();
   assertBrowserSafeKey(key);
@@ -62,7 +74,11 @@ async function signUpWithEmail(email, password, userMetadata) {
         "Mauvaise clé : utilise la clé Publishable / anon dans auth-config.js, pas la clé Secret (Project Settings → API)."
       );
     }
-    throw new Error(raw);
+    const error = new Error(raw);
+    error.status = res.status;
+    error.code = data.code || "";
+    error.retryAfterSeconds = getRetryAfterSeconds(res);
+    throw error;
   }
   return data;
 }
