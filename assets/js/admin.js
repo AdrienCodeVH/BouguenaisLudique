@@ -61,6 +61,28 @@
     "idee-cadeau": "Idée cadeau / conseil",
     autre: "Autre demande",
   };
+  const adminServices = [
+    {
+      page: "admin-comptes.html",
+      title: "Comptes utilisateurs",
+      description: "Modifier les rôles et gérer les accès.",
+    },
+    {
+      page: "admin-barometre.html",
+      title: "Baromètre",
+      description: "Piloter les commandes et les règles de seuil.",
+    },
+    {
+      page: "admin-produits.html",
+      title: "Produits",
+      description: "Ajouter ou supprimer des produits du catalogue.",
+    },
+    {
+      page: "admin-demandes.html",
+      title: "Demandes de commande",
+      description: "Suivre les demandes, statuts et notes de traitement.",
+    },
+  ];
   const recentLoginStorageKey = "bl_recent_login_at";
   const recentLoginMaxAgeMs = 2 * 60 * 1000;
   const loginNoticeDurationMs = 4000;
@@ -82,6 +104,28 @@
     node.textContent = message;
     node.classList.toggle("form-feedback--error", Boolean(isError));
     node.hidden = !message;
+  }
+
+  function renderAdminServicesNav() {
+    if (!servicesNav) return;
+
+    const currentPage = window.location.pathname.split("/").pop() || "admin.html";
+    const shortcuts = adminServices
+      .map((service) => {
+        const isCurrent = service.page === currentPage;
+        const activeClass = isCurrent ? " admin-shortcut-card--active" : "";
+        const currentAttribute = isCurrent ? ' aria-current="page"' : "";
+        return `
+          <a class="admin-shortcut-card${activeClass}" href="./${service.page}"${currentAttribute}>
+            <h3>${service.title}</h3>
+            <p>${service.description}</p>
+          </a>`;
+      })
+      .join("");
+
+    servicesNav.innerHTML = `
+      <h2><a href="./admin.html">Services principaux</a></h2>
+      <div class="admin-shortcuts">${shortcuts}</div>`;
   }
 
   function showRecentLoginNotice() {
@@ -1145,6 +1189,7 @@ Bouguenais Ludique
     }
 
     showRecentLoginNotice();
+    renderAdminServicesNav();
     if (servicesNav) servicesNav.hidden = false;
     if (hasAccountsModule && accountsSection) accountsSection.hidden = false;
     if (hasBarometerModule && barometerSection) barometerSection.hidden = false;
