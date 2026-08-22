@@ -61,6 +61,9 @@
     "idee-cadeau": "Idée cadeau / conseil",
     autre: "Autre demande",
   };
+  const recentLoginStorageKey = "bl_recent_login_at";
+  const recentLoginMaxAgeMs = 2 * 60 * 1000;
+  const loginNoticeDurationMs = 4000;
   let accessToken = "";
   let currentUserId = "";
   let currentOrdersValue = 0;
@@ -79,6 +82,30 @@
     node.textContent = message;
     node.classList.toggle("form-feedback--error", Boolean(isError));
     node.hidden = !message;
+  }
+
+  function showRecentLoginNotice() {
+    const rawLoginTime = sessionStorage.getItem(recentLoginStorageKey);
+    sessionStorage.removeItem(recentLoginStorageKey);
+
+    const loginTime = Number(rawLoginTime);
+    const noticeIsRecent =
+      Number.isFinite(loginTime) &&
+      loginTime > 0 &&
+      Date.now() >= loginTime &&
+      Date.now() - loginTime <= recentLoginMaxAgeMs;
+
+    if (!noticeIsRecent) {
+      setStatus("", false);
+      return;
+    }
+
+    setStatus("Connexion admin valide.", false);
+    window.setTimeout(() => {
+      if (statusNode?.textContent === "Connexion admin valide.") {
+        setStatus("", false);
+      }
+    }, loginNoticeDurationMs);
   }
 
   function escapeHtml(value) {
@@ -1117,7 +1144,7 @@ Bouguenais Ludique
       return;
     }
 
-    setStatus("Connexion admin valide.", false);
+    showRecentLoginNotice();
     if (servicesNav) servicesNav.hidden = false;
     if (hasAccountsModule && accountsSection) accountsSection.hidden = false;
     if (hasBarometerModule && barometerSection) barometerSection.hidden = false;
