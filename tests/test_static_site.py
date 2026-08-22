@@ -259,6 +259,17 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn('"./connexion.html?next=order"', signup_script)
         self.assertIn('"./inscription.html?next=order"', login_script)
 
+    def test_signup_confirmation_message_is_user_facing(self):
+        page = read_page("pages/inscription.html")
+        script = read_page("assets/js/inscription.js")
+
+        self.assertIn("function getEmailConfirmationMessage()", script)
+        self.assertIn("e-mail de confirmation", script)
+        self.assertIn("reprendre ta demande", script)
+        self.assertIn("courriers indésirables", script)
+        self.assertNotIn("confirmation e-mail est activée sur Supabase", script)
+        self.assertIn('src="../assets/js/inscription.js?v=20260822-3"', page)
+
     def test_order_confirmation_page_returns_home_automatically(self):
         page = read_page("pages/commande-confirmee.html")
         script = read_page("assets/js/order-confirmation.js")
