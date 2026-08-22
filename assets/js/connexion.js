@@ -79,6 +79,9 @@
           expires_at: data.expires_at,
         })
       );
+      if (!shouldReturnToOrder) {
+        sessionStorage.setItem("bl_recent_login_at", String(Date.now()));
+      }
       setFeedback(
         shouldReturnToOrder
           ? "Connexion réussie. Retour vers votre demande…"
