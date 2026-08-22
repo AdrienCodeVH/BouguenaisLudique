@@ -461,6 +461,28 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn('requestsStatusFilter?.addEventListener("change"', script)
         self.assertIn("currentOrderRequests", script)
 
+    def test_admin_login_notice_is_recent_one_time_and_temporary(self):
+        login_page = read_page("pages/connexion.html")
+        login_script = read_page("assets/js/connexion.js")
+        admin_script = read_page("assets/js/admin.js")
+        admin_pages = [
+            read_page("pages/admin.html"),
+            read_page("pages/admin-comptes.html"),
+            read_page("pages/admin-barometre.html"),
+            read_page("pages/admin-produits.html"),
+            read_page("pages/admin-demandes.html"),
+        ]
+
+        self.assertIn('sessionStorage.setItem("bl_recent_login_at", String(Date.now()))', login_script)
+        self.assertIn("function showRecentLoginNotice()", admin_script)
+        self.assertIn('sessionStorage.removeItem(recentLoginStorageKey)', admin_script)
+        self.assertIn("recentLoginMaxAgeMs = 2 * 60 * 1000", admin_script)
+        self.assertIn("loginNoticeDurationMs = 4000", admin_script)
+        self.assertNotIn('setStatus("Connexion admin valide.", false);\n    if (servicesNav)', admin_script)
+        self.assertIn('src="../assets/js/connexion.js?v=20260822-3"', login_page)
+        for page in admin_pages:
+            self.assertIn('src="../assets/js/admin.js?v=20260822-2"', page)
+
     def test_admin_order_requests_layout_is_responsive(self):
         styles = read_page("assets/css/style.css")
 
