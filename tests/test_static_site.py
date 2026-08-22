@@ -435,6 +435,8 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("function renderAdminServicesNav()", script)
         self.assertIn('aria-current="page"', script)
         self.assertIn("admin-shortcut-card--active", script)
+        self.assertNotIn('<h2><a href="./admin.html">Services principaux</a></h2>', script)
+        self.assertNotIn('content: "Section active"', styles)
         for target in (
             "admin-comptes.html",
             "admin-barometre.html",
@@ -447,8 +449,8 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         for page in admin_pages:
             self.assertIn('id="admin-services-nav"', page)
             self.assertIn('aria-label="Services principaux"', page)
-            self.assertIn('href="../assets/css/style.css?v=20260822-2"', page)
-            self.assertIn('src="../assets/js/admin.js?v=20260822-3"', page)
+            self.assertIn('href="../assets/css/style.css?v=20260822-3"', page)
+            self.assertIn('src="../assets/js/admin.js?v=20260822-4"', page)
 
     def test_admin_order_requests_page_exposes_tracking_table(self):
         page = read_page("pages/admin-demandes.html")
@@ -512,7 +514,7 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertNotIn('setStatus("Connexion admin valide.", false);\n    if (servicesNav)', admin_script)
         self.assertIn('src="../assets/js/connexion.js?v=20260822-3"', login_page)
         for page in admin_pages:
-            self.assertIn('src="../assets/js/admin.js?v=20260822-3"', page)
+            self.assertIn('src="../assets/js/admin.js?v=20260822-4"', page)
 
     def test_admin_order_requests_layout_is_responsive(self):
         styles = read_page("assets/css/style.css")
