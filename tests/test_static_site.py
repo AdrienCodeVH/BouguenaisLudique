@@ -268,7 +268,22 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("reprendre ta demande", script)
         self.assertIn("courriers indésirables", script)
         self.assertNotIn("confirmation e-mail est activée sur Supabase", script)
-        self.assertIn('src="../assets/js/inscription.js?v=20260822-3"', page)
+        self.assertIn('src="../assets/js/inscription.js?v=20260822-5"', page)
+
+    def test_signup_rate_limit_message_is_user_facing(self):
+        script = read_page("assets/js/inscription.js")
+        auth_api = read_page("assets/js/auth-api.js")
+
+        self.assertIn("function getSignupErrorMessage(error)", script)
+        self.assertIn("function startEmailRateLimitCountdown(error)", script)
+        self.assertIn("function formatCountdown(totalSeconds)", script)
+        self.assertIn('code === "over_email_send_rate_limit"', script)
+        self.assertIn('message.includes("email rate limit")', script)
+        self.assertIn("limite temporaire", script)
+        self.assertIn("Prochain essai conseillé dans", script)
+        self.assertIn("error.status = res.status", auth_api)
+        self.assertIn('error.code = data.code || ""', auth_api)
+        self.assertIn("getRetryAfterSeconds(res)", auth_api)
 
     def test_order_confirmation_page_returns_home_automatically(self):
         page = read_page("pages/commande-confirmee.html")
