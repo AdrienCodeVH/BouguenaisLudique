@@ -4,7 +4,7 @@ Cette Edge Function est le seul point d'entrée autorisé pour créer une
 ligne dans `public.order_requests`. Elle :
 
 1. exige un compte Supabase connecté et un JWT utilisateur valide ;
-2. impose l'e-mail et l'identifiant du compte à la demande ;
+2. ajoute automatiquement le nom, l'e-mail et l'identifiant du compte à la demande ;
 3. valide tous les champs côté serveur ;
 4. ignore les robots simples détectés par le champ leurre ;
 5. vérifie le jeton Turnstile auprès de Cloudflare ;

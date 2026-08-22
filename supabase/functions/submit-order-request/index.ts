@@ -1,8 +1,6 @@
 import { type SupabaseContext, withSupabase } from "npm:@supabase/server@^1";
 
-type OrderRequestFields = {
-  customer_name: string;
-  customer_email: string;
+type OrderRequestDetails = {
   category: string;
   product_name: string;
   player_age: number | null;
@@ -11,7 +9,9 @@ type OrderRequestFields = {
   pickup_notes: string | null;
 };
 
-type OrderRequestInsert = OrderRequestFields & {
+type OrderRequestInsert = OrderRequestDetails & {
+  customer_name: string;
+  customer_email: string;
   linked_user_id: string;
 };
 
@@ -40,7 +40,7 @@ type Database = {
 };
 
 type ValidSubmission = {
-  order: OrderRequestFields;
+  order: OrderRequestDetails;
   turnstileToken: string;
   honeypot: string;
 };
@@ -84,8 +84,6 @@ export function validateSubmission(payload: unknown): ValidSubmission | null {
   }
   const input = payload as Record<string, unknown>;
 
-  const customerName = cleanText(input.customer_name);
-  const customerEmail = cleanText(input.customer_email).toLowerCase();
   const category = cleanText(input.category);
   const productName = cleanText(input.product_name);
   const details = cleanText(input.details);
@@ -96,10 +94,6 @@ export function validateSubmission(payload: unknown): ValidSubmission | null {
   const budgetEur = parseOptionalNumber(input.budget_eur);
 
   if (
-    customerName.length < 2 ||
-    customerName.length > 80 ||
-    customerEmail.length > 160 ||
-    !EMAIL_PATTERN.test(customerEmail) ||
     !ALLOWED_CATEGORIES.has(category) ||
     productName.length < 2 ||
     productName.length > 140 ||
@@ -119,8 +113,6 @@ export function validateSubmission(payload: unknown): ValidSubmission | null {
 
   return {
     order: {
-      customer_name: customerName,
-      customer_email: customerEmail,
       category,
       product_name: productName,
       player_age: playerAge,
@@ -131,6 +123,17 @@ export function validateSubmission(payload: unknown): ValidSubmission | null {
     turnstileToken,
     honeypot,
   };
+}
+
+export function getAuthenticatedCustomerName(
+  userClaims: { userMetadata?: Record<string, unknown> } | null,
+  email: string,
+): string {
+  const displayName = cleanText(userClaims?.userMetadata?.display_name).slice(0, 80);
+  if (displayName.length >= 2) return displayName;
+
+  const emailAlias = cleanText(email.split("@", 1)[0]).slice(0, 80);
+  return emailAlias.length >= 2 ? emailAlias : "Joueur";
 }
 
 function configuredHostnames(): Set<string> {
@@ -215,9 +218,10 @@ async function handler(
   if (!authenticatedUserId || !EMAIL_PATTERN.test(authenticatedEmail)) {
     return jsonResponse({ error: "authentication_required" }, 401);
   }
-  if (submission.order.customer_email !== authenticatedEmail) {
-    return jsonResponse({ error: "account_email_mismatch" }, 409);
-  }
+  const authenticatedCustomerName = getAuthenticatedCustomerName(
+    context.userClaims,
+    authenticatedEmail,
+  );
 
   // Un robot simple remplit souvent les champs masqués. On répond comme pour
   // un succès afin de ne pas lui révéler la protection, sans écrire en base.
@@ -250,6 +254,7 @@ async function handler(
 
   const order: OrderRequestInsert = {
     ...submission.order,
+    customer_name: authenticatedCustomerName,
     customer_email: authenticatedEmail,
     linked_user_id: authenticatedUserId,
   };
