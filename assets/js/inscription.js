@@ -11,6 +11,14 @@
       : "../index.html";
   }
 
+  function getEmailConfirmationMessage() {
+    const nextStep = shouldReturnToOrder
+      ? "puis connecte-toi pour reprendre ta demande."
+      : "puis connecte-toi.";
+
+    return `Compte créé ! Un e-mail de confirmation vient de t’être envoyé. Ouvre-le pour activer ton compte, ${nextStep} Pense à vérifier tes courriers indésirables.`;
+  }
+
   const loginLink = form.querySelector('.auth-alt-link a[href$="connexion.html"]');
   if (shouldReturnToOrder && loginLink) {
     loginLink.href = "./connexion.html?next=order";
@@ -103,12 +111,7 @@
         return;
       }
 
-      setFeedback(
-        shouldReturnToOrder
-          ? "Compte créé. Vérifiez votre boîte mail si nécessaire, puis connectez-vous pour reprendre votre demande."
-          : "Compte créé. Si la confirmation e-mail est activée sur Supabase, vérifie ta boîte mail puis connecte-toi.",
-        false
-      );
+      setFeedback(getEmailConfirmationMessage(), false);
       form.reset();
     } catch (err) {
       setFeedback(err.message || "Une erreur est survenue.", true);
