@@ -49,7 +49,7 @@
     const email = trimValue(claims && claims.email).toLowerCase();
     if (!claims || !claims.sub || !isValidEmail(email)) return null;
 
-    return { accessToken, claims, email };
+    return { accessToken };
   }
 
   function saveDraft(values) {
@@ -57,7 +57,6 @@
       sessionStorage.setItem(
         draftStorageKey,
         JSON.stringify({
-          customer_name: values.customer_name,
           category: values.category,
           product_name: values.product_name,
           player_age: values.player_age,
@@ -81,7 +80,7 @@
     }
     if (!draft || typeof draft !== "object") return;
 
-    ["customer_name", "category", "product_name", "player_age", "budget_eur", "details", "pickup_notes"].forEach(
+    ["category", "product_name", "player_age", "budget_eur", "details", "pickup_notes"].forEach(
       (name) => {
         const field = form.elements[name];
         if (field && draft[name] !== null && draft[name] !== undefined) {
@@ -98,8 +97,6 @@
 
   function collectOrderRequestValues() {
     return {
-      customer_name: trimValue(form.customer_name.value),
-      customer_email: trimValue(form.customer_email.value).toLowerCase(),
       category: trimValue(form.category.value),
       product_name: trimValue(form.product_name.value),
       player_age: parseOptionalNumber(form.player_age.value),
@@ -115,14 +112,6 @@
   function validateOrderRequest(values) {
     const errors = {};
 
-    if (values.customer_name.length < 2) {
-      errors.customer_name = "Indiquez au moins 2 caractères pour le nom ou pseudo.";
-    }
-    if (!isValidEmail(values.customer_email)) {
-      errors.customer_email = "Indiquez une adresse e-mail valide.";
-    } else if (authenticatedSession && values.customer_email !== authenticatedSession.email) {
-      errors.customer_email = "Utilisez l’adresse e-mail associée à votre compte.";
-    }
     if (!allowedCategories.includes(values.category)) {
       errors.category = "Choisissez un univers de jeu.";
     }
@@ -186,8 +175,6 @@
 
   function buildPayload(values) {
     return {
-      customer_name: values.customer_name,
-      customer_email: values.customer_email,
       category: values.category,
       product_name: values.product_name,
       player_age: values.player_age,
@@ -278,7 +265,6 @@
         verification_failed: "La vérification anti-robot a expiré ou a échoué. Recommencez-la.",
         rate_limited: "Une demande vient déjà d'être envoyée avec cet e-mail. Patientez deux minutes.",
         invalid_submission: "Vérifiez les informations du formulaire avant de réessayer.",
-        account_email_mismatch: "L’e-mail de la demande doit correspondre à celui de votre compte.",
       };
       throw new Error(messages[data.error] || "La demande n'a pas pu être envoyée.");
     }
@@ -345,14 +331,6 @@
 
   if (authGate) authGate.hidden = true;
   form.hidden = false;
-  form.customer_email.value = authenticatedSession.email;
-  form.customer_email.readOnly = true;
-
-  const displayName = trimValue(authenticatedSession.claims.user_metadata?.display_name);
-  if (displayName && !form.customer_name.value) {
-    form.customer_name.value = displayName;
-  }
-
   restoreDraft();
   renderTurnstile();
 })();

@@ -85,8 +85,6 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
 
         fields = form["fields"]
         expected_fields = {
-            "customer_name",
-            "customer_email",
             "category",
             "product_name",
             "player_age",
@@ -97,12 +95,9 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
             "consent",
         }
         self.assertTrue(expected_fields.issubset(fields.keys()))
+        self.assertNotIn("customer_name", fields)
+        self.assertNotIn("customer_email", fields)
 
-        self.assertEqual(fields["customer_name"].get("required"), None)
-        self.assertEqual(fields["customer_name"].get("minlength"), "2")
-        self.assertEqual(fields["customer_name"].get("maxlength"), "80")
-        self.assertEqual(fields["customer_email"].get("type"), "email")
-        self.assertEqual(fields["customer_email"].get("required"), None)
         self.assertEqual(fields["category"].get("required"), None)
         self.assertEqual(fields["product_name"].get("minlength"), "2")
         self.assertEqual(fields["product_name"].get("maxlength"), "140")
@@ -245,6 +240,8 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("Authorization: `Bearer ${authenticatedSession.accessToken}`", script)
         self.assertIn('window.BLAuthUi?.getStoredSession?.()', script)
         self.assertIn('window.location.href = "./commande-confirmee.html"', script)
+        self.assertNotIn("customer_name: values.customer_name", script)
+        self.assertNotIn("customer_email: values.customer_email", script)
         self.assertIn("turnstile_token", script)
         self.assertIn("company_website", script)
         self.assertIn("window.turnstile.reset", script)
@@ -359,6 +356,9 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertNotIn('auth: "publishable:*"', function)
         self.assertIn("context.userClaims?.id", function)
         self.assertIn("context.userClaims?.email", function)
+        self.assertIn("getAuthenticatedCustomerName", function)
+        self.assertIn("customer_name: authenticatedCustomerName", function)
+        self.assertIn("customer_email: authenticatedEmail", function)
         self.assertIn('Authorization: `Bearer ${authenticatedSession.accessToken}`', read_page("assets/js/order-request.js"))
         self.assertIn("linked_user_id: authenticatedUserId", function)
         self.assertIn('.eq("linked_user_id", authenticatedUserId)', function)
