@@ -268,7 +268,7 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("reprendre ta demande", script)
         self.assertIn("courriers indésirables", script)
         self.assertNotIn("confirmation e-mail est activée sur Supabase", script)
-        self.assertIn('src="../assets/js/inscription.js?v=20260822-5"', page)
+        self.assertIn('src="../assets/js/inscription.js?v=20260822-6"', page)
 
     def test_signup_rate_limit_message_is_user_facing(self):
         script = read_page("assets/js/inscription.js")
@@ -284,6 +284,23 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("error.status = res.status", auth_api)
         self.assertIn('error.code = data.code || ""', auth_api)
         self.assertIn("getRetryAfterSeconds(res)", auth_api)
+
+    def test_signup_confirmation_redirects_to_a_dedicated_page(self):
+        signup_page = read_page("pages/inscription.html")
+        confirmation_page = read_page("pages/compte-confirme.html")
+        signup_script = read_page("assets/js/inscription.js")
+        confirmation_script = read_page("assets/js/account-confirmation.js")
+        auth_api = read_page("assets/js/auth-api.js")
+
+        self.assertIn("./compte-confirme.html", signup_script)
+        self.assertIn('signupUrl.searchParams.set("redirect_to", emailRedirectTo)', auth_api)
+        self.assertIn("Validation effectuée", confirmation_page)
+        self.assertIn('meta name="robots" content="noindex, nofollow"', confirmation_page)
+        self.assertIn('src="../assets/js/account-confirmation.js?v=', confirmation_page)
+        self.assertIn("bl_auth_session", confirmation_script)
+        self.assertIn("history.replaceState", confirmation_script)
+        self.assertIn('src="../assets/js/auth-api.js?v=20260822-4"', signup_page)
+        self.assertIn('src="../assets/js/inscription.js?v=20260822-6"', signup_page)
 
     def test_order_confirmation_page_returns_home_automatically(self):
         page = read_page("pages/commande-confirmee.html")

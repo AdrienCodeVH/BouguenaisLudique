@@ -42,10 +42,15 @@ function getRetryAfterSeconds(response) {
   return Math.max(0, Math.ceil((retryDate - Date.now()) / 1000));
 }
 
-async function signUpWithEmail(email, password, userMetadata) {
+async function signUpWithEmail(email, password, userMetadata, emailRedirectTo) {
   const { url, key } = getSupabaseConfig();
   assertBrowserSafeKey(key);
-  const res = await fetch(`${url}/auth/v1/signup`, {
+  const signupUrl = new URL(`${url}/auth/v1/signup`);
+  if (emailRedirectTo) {
+    signupUrl.searchParams.set("redirect_to", emailRedirectTo);
+  }
+
+  const res = await fetch(signupUrl.toString(), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -1711,6 +1711,18 @@ textarea:focus-visible {
   max-width: 39rem;
 }
 
+.account-confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.account-confirmation-actions .btn {
+  margin: 0;
+}
+
 .order-confirmation-icon {
   display: grid;
   place-items: center;

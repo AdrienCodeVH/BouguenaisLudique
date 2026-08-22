@@ -22,6 +22,10 @@
     return `Compte créé ! Un e-mail de confirmation vient de t’être envoyé. Ouvre-le pour activer ton compte, ${nextStep} Pense à vérifier tes courriers indésirables.`;
   }
 
+  function getEmailConfirmationDestination() {
+    return new URL("./compte-confirme.html", window.location.href).href;
+  }
+
   const loginLink = form.querySelector('.auth-alt-link a[href$="connexion.html"]');
   if (shouldReturnToOrder && loginLink) {
     loginLink.href = "./connexion.html?next=order";
@@ -146,9 +150,12 @@
     submitBtn.setAttribute("aria-busy", "true");
 
     try {
-      const data = await window.BLAuth.signUpWithEmail(email, password, {
-        display_name: displayName || undefined,
-      });
+      const data = await window.BLAuth.signUpWithEmail(
+        email,
+        password,
+        { display_name: displayName || undefined },
+        getEmailConfirmationDestination()
+      );
 
       const access =
         data.access_token ||
