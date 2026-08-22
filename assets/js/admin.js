@@ -123,9 +123,7 @@
       })
       .join("");
 
-    servicesNav.innerHTML = `
-      <h2><a href="./admin.html">Services principaux</a></h2>
-      <div class="admin-shortcuts">${shortcuts}</div>`;
+    servicesNav.innerHTML = `<div class="admin-shortcuts">${shortcuts}</div>`;
   }
 
   function showRecentLoginNotice() {
