@@ -268,19 +268,19 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("reprendre ta demande", script)
         self.assertIn("courriers indésirables", script)
         self.assertNotIn("confirmation e-mail est activée sur Supabase", script)
-        self.assertIn('src="../assets/js/inscription.js?v=20260822-6"', page)
+        self.assertIn('src="../assets/js/inscription.js?v=20260822-7"', page)
 
     def test_signup_rate_limit_message_is_user_facing(self):
         script = read_page("assets/js/inscription.js")
         auth_api = read_page("assets/js/auth-api.js")
 
         self.assertIn("function getSignupErrorMessage(error)", script)
-        self.assertIn("function startEmailRateLimitCountdown(error)", script)
-        self.assertIn("function formatCountdown(totalSeconds)", script)
         self.assertIn('code === "over_email_send_rate_limit"', script)
         self.assertIn('message.includes("email rate limit")', script)
-        self.assertIn("limite temporaire", script)
-        self.assertIn("Prochain essai conseillé dans", script)
+        self.assertIn("Trop d’e-mails de confirmation", script)
+        self.assertIn("Le délai exact n’est pas communiqué", script)
+        self.assertNotIn("Prochain essai conseillé dans", script)
+        self.assertNotIn("startEmailRateLimitCountdown", script)
         self.assertIn("error.status = res.status", auth_api)
         self.assertIn('error.code = data.code || ""', auth_api)
         self.assertIn("getRetryAfterSeconds(res)", auth_api)
@@ -300,7 +300,7 @@ class StaticSiteOrderFlowTests(unittest.TestCase):
         self.assertIn("bl_auth_session", confirmation_script)
         self.assertIn("history.replaceState", confirmation_script)
         self.assertIn('src="../assets/js/auth-api.js?v=20260822-4"', signup_page)
-        self.assertIn('src="../assets/js/inscription.js?v=20260822-6"', signup_page)
+        self.assertIn('src="../assets/js/inscription.js?v=20260822-7"', signup_page)
 
     def test_order_confirmation_page_returns_home_automatically(self):
         page = read_page("pages/commande-confirmee.html")
